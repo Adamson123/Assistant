@@ -1,0 +1,15 @@
+{
+  "identifier": "permissions",
+  "description": "",
+  "windows": ["main"],
+  "permissions": [
+    "fs:allow-desktop-write-recursive",
+    "fs:allow-desktop-read-recursive",
+    "core:window:allow-minimize",
+    "core:window:allow-close",
+    "core:window:allow-set-decorations",
+    "core:window:allow-set-size",
+    "core:window:default",
+    "screenshots:default"
+  ]
+}
