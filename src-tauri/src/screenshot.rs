@@ -14,12 +14,12 @@ pub fn take_screenshot(window: Window) -> String {
 
     //window.show().unwrap();
 
-    // Convert to PNG bytes (IMPORTANT)
+    // Convert to WEBP bytes
     let mut bytes: Vec<u8> = Vec::new();
     image
         .write_to(
             &mut std::io::Cursor::new(&mut bytes),
-            image::ImageOutputFormat::Png,
+            image::ImageOutputFormat::WebP,
         )
         .unwrap();
 

@@ -3,16 +3,16 @@ import { Message } from "../App";
 
 const UserMessageBox = ({ msg }: { msg: Message }) => {
     return (
-        <div className="max-w-100 bg-third-color/30 self-end p-3 rounded-tl-xl rounded-bl-xl rounded-tr-xl flex flex-col gap-2">
+        <div className="max-w-100 bg-third-color/30 self-end p-3 rounded-tl-xl rounded-bl-xl rounded-tr-xl flex flex-col">
             <p>{msg.message}</p>
             {msg.images?.length ? (
-                <div className="flex flex-wrap">
+                <div className="flex flex-wrap gap-1.5">
                     {msg.images.map((img, i) => (
                         <img
                             key={i}
                             src={img}
                             alt="User sent image"
-                            className="size-20 object-cover rounded-lg mt-2"
+                            className="size-7 object-cover rounded-lg mt-2"
                         />
                     ))}
                 </div>

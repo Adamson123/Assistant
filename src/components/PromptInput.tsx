@@ -24,18 +24,27 @@ import { ArrowUp, Plus, ScreenShare, X } from "lucide-react";
 // };
 
 import { invoke } from "@tauri-apps/api/core";
-import React, { useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
+import { Message } from "../App";
 
 export async function capture() {
     const html = document.querySelector("html")!;
     html.style.opacity = "0";
     const base64 = await invoke<string>("take_screenshot");
     html.style.opacity = "1";
-    return `data:image/png;base64,${base64}`;
+    return `data:image/webp;base64,${base64}`;
 }
 
-const PromptInput = ({ unFoldWindow }: { unFoldWindow: () => void }) => {
+const PromptInput = ({
+    unFoldWindow,
+    setMessages,
+    messages,
+}: {
+    unFoldWindow: () => void;
+    messages: Message[];
+    setMessages: Dispatch<SetStateAction<Message[]>>;
+}) => {
     const [imgs, setImgs] = useState<string[]>([]);
     const [previewedImg, setPreviewedImg] = useState("");
     const [prompt, setPrompt] = useState("");
@@ -60,7 +69,24 @@ const PromptInput = ({ unFoldWindow }: { unFoldWindow: () => void }) => {
 
     const onSubmit = (e: React.SubmitEvent) => {
         e.preventDefault();
-        console.log({ prompt });
+        /*
+      {
+      prompt,
+      screenshots,
+      otherFiles,
+      pastReplies
+      }
+      */
+
+        const userMessage: Message = {
+            message: prompt,
+            images: imgs,
+            type: "user",
+        };
+
+        setMessages((msgs) =>
+            msgs.length ? [...msgs, userMessage] : [userMessage],
+        );
     };
 
     return (

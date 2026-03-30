@@ -6,6 +6,7 @@ import ChatContainer from "./components/ChatContainer";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { MessageCirclePlus, PanelLeft } from "lucide-react";
 import ChatHistory from "./components/ChatHistory";
+import { messagesTemp } from "./data/messagesTemp";
 
 export type Message = {
     message: string;
@@ -16,41 +17,7 @@ export type Message = {
 function App() {
     const [fold, setFold] = useState(false);
     const [showAssistant, setShowAssistant] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([
-        {
-            message:
-                "Hello AI Assistant, How are you doing my guy oooooooo hahahahhahahhahahhahahah?",
-            type: "user",
-        },
-        {
-            message:
-                "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-            type: "ai",
-        },
-
-        {
-            message:
-                "Hello AI Assistant, How are you doing my guy oooooooo hahahahhahahhahahhahahah?",
-            type: "user",
-        },
-        {
-            message:
-                "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-            type: "ai",
-        },
-
-        {
-            message:
-                "Hello AI Assistant, How are you doing my guy oooooooo hahahahhahahhahahhahahah?",
-            type: "user",
-        },
-
-        {
-            message:
-                "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-            type: "ai",
-        },
-    ]);
+    const [messages, setMessages] = useState<Message[]>(messagesTemp);
 
     const foldWindow = async () => {
         // if (fold) return;
@@ -146,7 +113,11 @@ function App() {
                     </>
                 )}
 
-                <PromptInput unFoldWindow={unFoldWindow} />
+                <PromptInput
+                    unFoldWindow={unFoldWindow}
+                    messages={messages}
+                    setMessages={setMessages}
+                />
             </div>
         </main>
     );
