@@ -1,87 +1,72 @@
-import { useState } from "react";
-
-export type Message = {
-  message: string;
-  type: "user" | "ai";
-};
+import { Dispatch, SetStateAction } from "react";
+import { Message } from "../App";
 
 const UserMessageBox = ({ msg }: { msg: Message }) => {
-  return (
-    <div className="max-w-[400px] bg-third-color/30 self-end p-3 rounded-tl-xl rounded-bl-xl rounded-tr-xl">
-      {msg.message}
-    </div>
-  );
+    return (
+        <div className="max-w-100 bg-third-color/30 self-end p-3 rounded-tl-xl rounded-bl-xl rounded-tr-xl flex flex-col gap-2">
+            <p>{msg.message}</p>
+            {msg.images?.length ? (
+                <div className="flex flex-wrap">
+                    {msg.images.map((img, i) => (
+                        <img
+                            key={i}
+                            src={img}
+                            alt="User sent image"
+                            className="size-20 object-cover rounded-lg mt-2"
+                        />
+                    ))}
+                </div>
+            ) : (
+                ""
+            )}
+        </div>
+    );
 };
 
 const AIMessageBox = ({ msg }: { msg: Message }) => {
-  return (
-    <div className="max-w-[400px] bg-transparent self-start p-3">
-      {msg.message}
-    </div>
-  );
+    return (
+        <div className="max-w-100 bg-transparent self-start p-3">
+            {msg.message}
+        </div>
+    );
 };
 
-const ChatContainer = () => {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      message:
-        "Hello AI Assistant, How are you doing my guy oooooooo hahahahhahahhahahhahahah?",
-      type: "user",
-    },
-    {
-      message:
-        "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-      type: "ai",
-    },
-
-    {
-      message:
-        "Hello AI Assistant, How are you doing my guy oooooooo hahahahhahahhahahhahahah?",
-      type: "user",
-    },
-    {
-      message:
-        "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-      type: "ai",
-    },
-
-    {
-      message:
-        "Hello AI Assistant, How are you doing my guy oooooooo hahahahhahahhahahhahahah?",
-      type: "user",
-    },
-
-    {
-      message:
-        "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-      type: "ai",
-    },
-  ]);
-
-  return (
-    <div
-      style={{
-        scrollbarColor: "var(--color-primary-color) transparent",
-      }}
-      className="chat grow overflow-y-auto w-full p-5"
-    >
-      <div className="flex flex-col text-sm gap-5">
-        {messages.map((msg, i) => {
-          switch (msg.type) {
-            case "user":
-              return <UserMessageBox key={i} msg={msg} />;
-              break;
-            case "ai":
-              return <AIMessageBox key={i} msg={msg} />;
-              break;
-            default:
-              return <UserMessageBox key={i} msg={msg} />;
-              break;
-          }
-        })}
-      </div>
-    </div>
-  );
+const ChatContainer = ({
+    messages,
+    setMessages,
+}: {
+    messages: Message[];
+    setMessages: Dispatch<SetStateAction<Message[]>>;
+}) => {
+    return (
+        <div
+            style={{
+                scrollbarColor: "var(--color-primary-color) transparent",
+            }}
+            className="chat grow overflow-y-auto w-full p-5"
+        >
+            {messages.length ? (
+                <div className="flex flex-col text-sm gap-5">
+                    {messages.map((msg, i) => {
+                        switch (msg.type) {
+                            case "user":
+                                return <UserMessageBox key={i} msg={msg} />;
+                            case "ai":
+                                return <AIMessageBox key={i} msg={msg} />;
+                            default:
+                                return <UserMessageBox key={i} msg={msg} />;
+                        }
+                    })}
+                </div>
+            ) : (
+                <div className="flex items-center justify-center h-full">
+                    <h2 className="text-2xl font-semibold text-third-color/50">
+                        How can I assist you today?
+                    </h2>
+                </div>
+            )}
+        </div>
+    );
 };
 
 export default ChatContainer;

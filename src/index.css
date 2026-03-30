@@ -1,39 +1,40 @@
 @import "tailwindcss";
 
 @theme {
-  --color-primary-color: #1b1e21;
-  --color-secondary-color: #303336;
-  --color-third-color: #6b6e70;
-  --color-fourth-color: rgb(108, 78, 217); /*#86c232*/
-  --font-orbitron: "Orbitron", sans-serif;
+    --color-primary-color: #1b1e21;
+    --color-secondary-color: #303336;
+    --color-third-color: #6b6e70;
+    --color-fourth-color: rgb(108, 78, 217); /*#86c232*/
+    --font-orbitron: "Orbitron", sans-serif;
 }
 
 :root {
-  font-family: "Roboto", sans-serif;
-  font-size: 15px;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-  -webkit-text-size-adjust: 100%;
-  font-weight: 300;
+    font-family: "Roboto", sans-serif;
+    font-size: 15px;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-text-size-adjust: 100%;
+    font-weight: 300;
 }
 
 html,
 body {
-  border-radius: 20px;
-  overflow: hidden;
-  color: white;
+    border-radius: 20px;
+    overflow: hidden;
+    color: white;
 }
 
 .header {
-  -webkit-app-region: drag;
+    -webkit-app-region: drag;
 }
 
 button {
-  -webkit-app-region: no-drag;
-  cursor: pointer;
+    -webkit-app-region: no-drag;
+    cursor: pointer;
 }
 
 .editable:empty::before {
-  content: attr(data-placeholder);
-  @apply text-third-color;
+    content: attr(data-placeholder);
+    @apply text-third-color;
+    pointer-events: none;
 }
