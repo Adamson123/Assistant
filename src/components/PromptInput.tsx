@@ -1,4 +1,4 @@
-import { ArrowUp, Plus, ScreenShare, X } from "lucide-react";
+import { ArrowUp, Loader2, Plus, ScreenShare, X } from "lucide-react";
 
 // const PromptInput = () => {
 //   return (
@@ -27,6 +27,7 @@ import { invoke } from "@tauri-apps/api/core";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
 import { Message } from "../App";
+import useHandleAiQuery from "./useHandleAI";
 
 export async function capture() {
     const html = document.querySelector("html")!;
@@ -35,6 +36,57 @@ export async function capture() {
     html.style.opacity = "1";
     return `data:image/webp;base64,${base64}`;
 }
+
+const reduceImgSize = async (img: string) => {
+    //  return img;
+    const MAX_DIMENSION = 1280;
+    const START_QUALITY = 0.8;
+    const MIN_QUALITY = 0.45;
+    const MAX_BYTES = 350_000;
+
+    const compressOne = async (dataUrl: string): Promise<string> => {
+        try {
+            const image = await new Promise<HTMLImageElement>(
+                (resolve, reject) => {
+                    const img = new Image();
+                    img.onload = () => resolve(img);
+                    img.onerror = () => reject(new Error("Image load failed"));
+                    img.src = dataUrl;
+                },
+            );
+
+            const ratio = Math.min(
+                1,
+                MAX_DIMENSION / Math.max(image.width, image.height),
+            );
+            const width = Math.max(1, Math.round(image.width * ratio));
+            const height = Math.max(1, Math.round(image.height * ratio));
+
+            const canvas = document.createElement("canvas");
+            canvas.width = width;
+            canvas.height = height;
+
+            const ctx = canvas.getContext("2d");
+            if (!ctx) return dataUrl;
+
+            ctx.drawImage(image, 0, 0, width, height);
+
+            let quality = START_QUALITY;
+            let output = canvas.toDataURL("image/webp", quality);
+
+            while (output.length > MAX_BYTES && quality > MIN_QUALITY) {
+                quality -= 0.1;
+                output = canvas.toDataURL("image/webp", quality);
+            }
+
+            return output;
+        } catch {
+            return dataUrl;
+        }
+    };
+    //Promise.all(imgs.map((img) => compressOne(img)));
+    return compressOne(img);
+};
 
 const PromptInput = ({
     unFoldWindow,
@@ -48,11 +100,13 @@ const PromptInput = ({
     const [imgs, setImgs] = useState<string[]>([]);
     const [previewedImg, setPreviewedImg] = useState("");
     const [prompt, setPrompt] = useState("");
+    const { error, sendAiRequest, isAIResponsePending } =
+        useHandleAiQuery(setMessages);
 
     const handleScreenShot = async () => {
         const result = await capture();
-        console.log({ result });
-        setImgs((imgs) => (imgs.length ? [...imgs, result] : [result]));
+        const img = await reduceImgSize(result);
+        setImgs((imgs) => (imgs.length ? [...imgs, img] : [img]));
         //if (fold) foldWindow();
     };
 
@@ -67,7 +121,7 @@ const PromptInput = ({
         setPreviewedImg(img);
     };
 
-    const onSubmit = (e: React.SubmitEvent) => {
+    const onSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
         /*
       {
@@ -87,6 +141,10 @@ const PromptInput = ({
         setMessages((msgs) =>
             msgs.length ? [...msgs, userMessage] : [userMessage],
         );
+
+        sendAiRequest(prompt, imgs);
+        // setPrompt("");
+        // setImgs([]);
     };
 
     return (
@@ -148,10 +206,15 @@ const PromptInput = ({
 
                     {/* Send */}
                     <button
+                        disabled={isAIResponsePending}
                         type="submit"
                         className="size-10 min-w-10 items-center flex justify-center rounded-full bg-white"
                     >
-                        <ArrowUp className="size-5 stroke-primary-color stroke-3" />
+                        {isAIResponsePending ? (
+                            <Loader2 className="animate-spin stroke-primary-color size-5 stroke-3" />
+                        ) : (
+                            <ArrowUp className="size-5 stroke-primary-color stroke-3" />
+                        )}
                     </button>
                 </div>
             </form>
