@@ -1,31 +1,51 @@
 import { useState } from "react";
 import { Message } from "../App";
 import node_api from "../api/node-api";
+import type { UserInput } from "../types";
 
-const geminiRequest = async (request: {
-    prompt: string;
-    screenshots: string[];
-}) => {
-    // const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    // const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+const geminiRequest = async (request: UserInput) => {
+    try {
+        const response = await node_api.analyzeWithGemini(request);
+        return { type: "gemini", text: response, error: "" };
+    } catch (error) {
+        return { type: "gemini", text: "", error: String(error) };
+    }
+};
 
-    // const response = await fetch(url, {
-    //     method: "POST",
-    //     headers: {
-    //         "Content-Type": "application/json",
-    //     },
-    //     body: JSON.stringify({
-    //         contents: [
-    //             {
-    //                 role: "user",
-    //                 parts: [{ text: JSON.stringify(request) }],
-    //             },
-    //         ],
-    //     }),
-    // });
+const geminiRequestStream = async (
+    request: UserInput,
+    setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
+) => {
+    try {
+        let accumulatedText = "";
+        setMessages((msgs) =>
+            msgs.length
+                ? [...msgs, { message: accumulatedText, type: "ai" }]
+                : [{ message: accumulatedText, type: "ai" }],
+        );
+        const callback = (text: string) => {
+            accumulatedText += text;
+            setMessages((msgs) => {
+                const lastMessage = msgs[msgs.length - 1];
+                if (lastMessage && lastMessage.type === "ai") {
+                    return [
+                        ...msgs.slice(0, -1),
+                        { message: accumulatedText, type: "ai" },
+                    ];
+                }
+                return [...msgs, { message: accumulatedText, type: "ai" }];
+            });
 
-    const response = await node_api.analyzeWithGemini(JSON.stringify(request));
-    return { response, type: "gemini" };
+            console.log(text);
+        };
+
+        console.log("Sent request in client");
+        const response = await node_api.analyzeWithGeminiStream(request);
+
+        return { type: "gemini", text: response, error: "" };
+    } catch (error) {
+        return { type: "gemini", text: "", error: String(error) };
+    }
 };
 
 const mistraRequest = async (request: {
@@ -91,45 +111,23 @@ export default function useHandleAiQuery(
             screenshots: images,
         };
 
-        const res = await geminiRequest(request);
+        const res = await geminiRequestStream(request, setMessages);
         setIsAIResponsePending(false);
 
-        // if (!res.response.ok) {
-        //     const errorData = await res.response.json();
-        //     let errorMsg = "";
-        //     if (res.type === "gemini") {
-        //         errorMsg = errorData.error.message;
-        //     } else if (res.type === "mistra") {
-        //         errorMsg = "Mistra error: " + res.response.status;
-        //     } else if (res.type === "groq") {
-        //         errorMsg = "Groq error: " + res.response.status;
-        //     }
+        if (res.error) {
+            setError(res.error);
+            return;
+        }
 
-        //     setError(
-        //         errorMsg || "An error occurred while processing your request.",
-        //     );
-        //     return;
-        // }
-
-        // const AIResponse = await res.response.json();
-
-        // let aiText = "";
-        // if (res.type === "gemini") {
-        //     aiText = AIResponse.candidates[0].content.parts[0].text;
-        // } else if (res.type === "mistra" || res.type === "groq") {
-        //     console.log({ AIResponse });
-        //     aiText = AIResponse.choices[0].message.content;
-        // }
-        const aiText = res.response;
         const aiMessage: Message = {
-            message: aiText,
+            message: res.text,
             type: "ai",
         };
         setMessages((msgs) =>
             msgs.length ? [...msgs, aiMessage] : [aiMessage],
         );
 
-        return aiText;
+        return res.error;
     };
 
     return {

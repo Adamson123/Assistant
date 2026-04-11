@@ -1,21 +1,23 @@
-import type { NodeBackendAPI } from "../node-backend/node-shared-api";
+import type { NodeBackendAPI, UserInput } from "./../types/index";
 import { createProcess } from "./process-api";
 
 const PROCESS_NAME = "node-worker";
 let nodeWorkerInstance: NodeBackendAPI | null = null;
 
-export async function getNodeProcess() {
+export async function getNodeProcess(): Promise<NodeBackendAPI> {
     if (nodeWorkerInstance) {
+        console.log("Node worker instance already exists, returning it.");
         return nodeWorkerInstance;
     }
 
+    console.log("Node worker instance is null");
     nodeWorkerInstance = await createProcess(PROCESS_NAME, {
         runtime: "node",
         script: "../src/node-backend/node-worker.ts",
         cwd: ".",
     });
 
-    return nodeWorkerInstance;
+    return nodeWorkerInstance as NodeBackendAPI;
 }
 
 const node_api: NodeBackendAPI = {
@@ -46,12 +48,26 @@ const node_api: NodeBackendAPI = {
             throw String(error);
         }
     },
-    async analyzeWithGemini(request: string) {
+    async analyzeWithGemini(request: UserInput) {
         try {
             const worker = await getNodeProcess();
             return await worker.analyzeWithGemini(request);
         } catch (error) {
             console.error("Error analyzing with Gemini: ", error);
+            throw String(error);
+        }
+    },
+
+    async analyzeWithGeminiStream(
+        request: UserInput,
+        //  callback: (text: string) => void,
+    ) {
+        try {
+            const worker = await getNodeProcess();
+            console.log("Sent request to node process for streaming");
+            return await worker.analyzeWithGeminiStream(request);
+        } catch (error) {
+            console.error("Error analyzing with Gemini Stream: ", error);
             throw String(error);
         }
     },

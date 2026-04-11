@@ -5,13 +5,14 @@ import {
     spawn,
     SpawnConfig,
 } from "tauri-plugin-js-api";
-import { NodeBackendAPI } from "../node-backend/node-shared-api";
+import type { NodeBackendAPI } from "../types";
 
 let allProcessesKilled = false;
 window.addEventListener("load", () => {
     killAll()
         .then(() => {
             allProcessesKilled = true;
+            console.log("Killed all processes on load");
         })
         .catch((error) => {
             console.error("Error killing processes on load: ", error);
@@ -27,8 +28,6 @@ window.addEventListener("load", () => {
             );
         }
     }, 7000);
-
-    console.log("Killed all processes");
 });
 
 export const IsProcessRunning = async (processName: string) => {
