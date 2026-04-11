@@ -1,28 +1,30 @@
 import { useState } from "react";
 import { Message } from "../App";
+import node_api from "../api/node-api";
 
 const geminiRequest = async (request: {
     prompt: string;
     screenshots: string[];
 }) => {
-    const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
-    const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
+    // const apiKey = import.meta.env.VITE_GEMINI_API_KEY;
+    // const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
 
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            contents: [
-                {
-                    role: "user",
-                    parts: [{ text: JSON.stringify(request) }],
-                },
-            ],
-        }),
-    });
+    // const response = await fetch(url, {
+    //     method: "POST",
+    //     headers: {
+    //         "Content-Type": "application/json",
+    //     },
+    //     body: JSON.stringify({
+    //         contents: [
+    //             {
+    //                 role: "user",
+    //                 parts: [{ text: JSON.stringify(request) }],
+    //             },
+    //         ],
+    //     }),
+    // });
 
+    const response = await node_api.analyzeWithGemini(JSON.stringify(request));
     return { response, type: "gemini" };
 };
 
@@ -89,36 +91,36 @@ export default function useHandleAiQuery(
             screenshots: images,
         };
 
-        const res = await groqRequest(request);
+        const res = await geminiRequest(request);
         setIsAIResponsePending(false);
 
-        if (!res.response.ok) {
-            const errorData = await res.response.json();
-            let errorMsg = "";
-            if (res.type === "gemini") {
-                errorMsg = errorData.error.message;
-            } else if (res.type === "mistra") {
-                errorMsg = "Mistra error: " + res.response.status;
-            } else if (res.type === "groq") {
-                errorMsg = "Groq error: " + res.response.status;
-            }
+        // if (!res.response.ok) {
+        //     const errorData = await res.response.json();
+        //     let errorMsg = "";
+        //     if (res.type === "gemini") {
+        //         errorMsg = errorData.error.message;
+        //     } else if (res.type === "mistra") {
+        //         errorMsg = "Mistra error: " + res.response.status;
+        //     } else if (res.type === "groq") {
+        //         errorMsg = "Groq error: " + res.response.status;
+        //     }
 
-            setError(
-                errorMsg || "An error occurred while processing your request.",
-            );
-            return;
-        }
+        //     setError(
+        //         errorMsg || "An error occurred while processing your request.",
+        //     );
+        //     return;
+        // }
 
-        const AIResponse = await res.response.json();
+        // const AIResponse = await res.response.json();
 
-        let aiText = "";
-        if (res.type === "gemini") {
-            aiText = AIResponse.candidates[0].content.parts[0].text;
-        } else if (res.type === "mistra" || res.type === "groq") {
-            console.log({ AIResponse });
-            aiText = AIResponse.choices[0].message.content;
-        }
-
+        // let aiText = "";
+        // if (res.type === "gemini") {
+        //     aiText = AIResponse.candidates[0].content.parts[0].text;
+        // } else if (res.type === "mistra" || res.type === "groq") {
+        //     console.log({ AIResponse });
+        //     aiText = AIResponse.choices[0].message.content;
+        // }
+        const aiText = res.response;
         const aiMessage: Message = {
             message: aiText,
             type: "ai",

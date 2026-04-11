@@ -28,6 +28,7 @@ import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
 import { Message } from "../App";
 import useHandleAiQuery from "./useHandleAI";
+import node_api from "../api/node-api";
 
 export async function capture() {
     const html = document.querySelector("html")!;
@@ -104,9 +105,12 @@ const PromptInput = ({
         useHandleAiQuery(setMessages);
 
     const handleScreenShot = async () => {
-        const result = await capture();
-        const img = await reduceImgSize(result);
+        const img = await capture();
+        //  const img = await reduceImgSize(result);
         setImgs((imgs) => (imgs.length ? [...imgs, img] : [img]));
+        const ana_res = await node_api.createFile("image.webp", img);
+        console.log({ ana_res });
+
         //if (fold) foldWindow();
     };
 

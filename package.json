@@ -1,31 +1,41 @@
 {
-  "name": "tauri-app",
-  "private": true,
-  "version": "0.1.0",
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
-    "preview": "vite preview",
-    "tauri": "tauri"
-  },
-  "dependencies": {
-    "@tailwindcss/vite": "^4.2.2",
-    "@tauri-apps/plugin-fs": "~2.4.5",
-    "lucide-react": "^1.0.0",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0",
-    "@tauri-apps/api": "^2.10.1",
-    "@tauri-apps/plugin-opener": "^2",
-    "tailwindcss": "^4.2.2",
-    "tauri-plugin-screenshots-api": "^2.2.0"
-  },
-  "devDependencies": {
-    "@types/react": "^19.1.8",
-    "@types/react-dom": "^19.1.6",
-    "@vitejs/plugin-react": "^4.6.0",
-    "typescript": "~5.8.3",
-    "vite": "^7.0.4",
-    "@tauri-apps/cli": "^2"
-  }
+    "name": "tauri-app",
+    "private": true,
+    "version": "0.1.0",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "tsc && vite build",
+        "preview": "vite preview",
+        "tauri": "tauri"
+    },
+    "dependencies": {
+        "@google/genai": "^1.49.0",
+        "@google/generative-ai": "^0.24.1",
+        "@streamdown/code": "^1.1.1",
+        "@streamdown/math": "^1.0.2",
+        "@streamdown/mermaid": "^1.0.2",
+        "@tailwindcss/vite": "^4.2.2",
+        "@tauri-apps/api": "^2.10.1",
+        "@tauri-apps/plugin-fs": "~2.4.5",
+        "@tauri-apps/plugin-opener": "^2",
+        "envfile": "^7.1.0",
+        "kkrpc": "^0.6.7",
+        "lucide-react": "^1.0.0",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0",
+        "streamdown": "^2.5.0",
+        "tailwindcss": "^4.2.2",
+        "tauri-plugin-js-api": "^0.1.0",
+        "tauri-plugin-screenshots-api": "^2.2.0"
+    },
+    "devDependencies": {
+        "@tauri-apps/cli": "^2",
+        "@types/node": "^25.6.0",
+        "@types/react": "^19.1.8",
+        "@types/react-dom": "^19.1.6",
+        "@vitejs/plugin-react": "^4.6.0",
+        "typescript": "~5.8.3",
+        "vite": "^7.0.4"
+    }
 }

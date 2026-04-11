@@ -57,11 +57,11 @@ function App() {
     };
 
     useEffect(() => {
-        const observer = new ResizeObserver((entries) => {
-            const entry = entries[0];
-            const height = entry.contentRect.height;
+        const observer = new ResizeObserver((_) => {
+            // const entry = entries[0];
+            // const height = entry.contentRect.height;
             if (fold) foldWindow();
-            console.log("Input Height ooo:", height);
+            // console.log("Input Height ooo:", height);
         });
 
         const promptInput = document.querySelector(

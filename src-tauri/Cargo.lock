@@ -4163,6 +4163,7 @@ dependencies = [
  "tauri",
  "tauri-build",
  "tauri-plugin-fs",
+ "tauri-plugin-js",
  "tauri-plugin-opener",
  "tauri-plugin-screenshots",
 ]
@@ -4267,6 +4268,21 @@ dependencies = [
  "thiserror 2.0.18",
  "toml 0.9.12+spec-1.1.0",
  "url",
+]
+
+[[package]]
+name = "tauri-plugin-js"
+version = "0.1.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d5b0385d4c4325cbd6154c28d13b45930811c7301eec2366028778ae58c10819"
+dependencies = [
+ "log",
+ "serde",
+ "serde_json",
+ "tauri",
+ "tauri-plugin",
+ "thiserror 2.0.18",
+ "tokio",
 ]
 
 [[package]]
@@ -4540,6 +4556,7 @@ dependencies = [
  "libc",
  "mio",
  "pin-project-lite",
+ "signal-hook-registry",
  "socket2",
  "windows-sys 0.61.2",
 ]

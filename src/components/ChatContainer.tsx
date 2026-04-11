@@ -1,5 +1,11 @@
 import { Dispatch, SetStateAction } from "react";
 import { Message } from "../App";
+import { Streamdown } from "streamdown";
+import { code } from "@streamdown/code";
+import { mermaid } from "@streamdown/mermaid";
+import { math } from "@streamdown/math";
+import "katex/dist/katex.min.css";
+import "streamdown/styles.css";
 
 const UserMessageBox = ({ msg }: { msg: Message }) => {
     return (
@@ -25,8 +31,16 @@ const UserMessageBox = ({ msg }: { msg: Message }) => {
 
 const AIMessageBox = ({ msg }: { msg: Message }) => {
     return (
-        <div className="max-w-100 bg-transparent self-start p-3">
-            {msg.message}
+        <div className="w-full bg-transparent self-start p-3">
+            <Streamdown
+                plugins={{
+                    code,
+                    mermaid,
+                    math,
+                }}
+            >
+                {msg.message}
+            </Streamdown>
         </div>
     );
 };
