@@ -26,9 +26,9 @@ import { ArrowUp, Loader2, Plus, ScreenShare, X } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
-import { Message } from "../App";
 import useHandleAiQuery from "./useHandleAI";
 import node_api from "../api/node-api";
+import { Message } from "../types";
 
 export async function capture() {
     const html = document.querySelector("html")!;
@@ -101,8 +101,10 @@ const PromptInput = ({
     const [imgs, setImgs] = useState<string[]>([]);
     const [previewedImg, setPreviewedImg] = useState("");
     const [prompt, setPrompt] = useState("");
-    const { error, sendAiRequest, isAIResponsePending } =
-        useHandleAiQuery(setMessages);
+    const { error, sendAiRequest, isAIResponsePending } = useHandleAiQuery(
+        setMessages,
+        messages,
+    );
 
     const handleScreenShot = async () => {
         const img = await capture();

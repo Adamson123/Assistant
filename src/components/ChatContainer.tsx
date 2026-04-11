@@ -1,11 +1,11 @@
 import { Dispatch, SetStateAction } from "react";
-import { Message } from "../App";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 import { mermaid } from "@streamdown/mermaid";
 import { math } from "@streamdown/math";
 import "katex/dist/katex.min.css";
 import "streamdown/styles.css";
+import { Message } from "../types";
 
 const UserMessageBox = ({ msg }: { msg: Message }) => {
     return (
@@ -65,7 +65,7 @@ const ChatContainer = ({
                         switch (msg.type) {
                             case "user":
                                 return <UserMessageBox key={i} msg={msg} />;
-                            case "ai":
+                            case "model":
                                 return <AIMessageBox key={i} msg={msg} />;
                             default:
                                 return <UserMessageBox key={i} msg={msg} />;

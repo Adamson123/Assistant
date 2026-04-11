@@ -51,7 +51,7 @@ const api: NodeBackendAPI = {
 
     analyzeWithGeminiStream: async (
         request: UserInput,
-        //  callback: (text: string) => void,
+        callback: (text: string) => void,
     ) => {
         try {
             //const result = await genAI.generateContent(request);
@@ -63,7 +63,7 @@ const api: NodeBackendAPI = {
 
             const result = await ai.models.generateContentStream({
                 model: "gemini-2.5-flash",
-                contents: [{ role: "user", parts }],
+                contents: [...request.history, { role: "user", parts }],
             });
 
             console.log("Stream started");
@@ -72,11 +72,11 @@ const api: NodeBackendAPI = {
                 if (part.text) {
                     accumulatedText += part.text;
                     console.log("Recieved Part: ", part.text);
-                    await fs.writeFile(
-                        path.join(projectRoot, "streams/stream_output.txt"),
-                        accumulatedText,
-                    );
-                    //callback(accumulatedText);
+                    // await fs.writeFile(
+                    //     path.join(projectRoot, "streams/stream_output.txt"),
+                    //     accumulatedText,
+                    // );
+                    callback(part.text);
                 }
             }
 

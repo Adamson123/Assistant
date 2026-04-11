@@ -7,12 +7,7 @@ import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { MessageCirclePlus, PanelLeft } from "lucide-react";
 import ChatHistory from "./components/ChatHistory";
 import { messagesTemp } from "./data/messagesTemp";
-
-export type Message = {
-    message: string;
-    type: "user" | "ai";
-    images?: string[];
-};
+import { Message } from "./types";
 
 function App() {
     const [fold, setFold] = useState(false);

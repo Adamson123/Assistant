@@ -60,12 +60,12 @@ const node_api: NodeBackendAPI = {
 
     async analyzeWithGeminiStream(
         request: UserInput,
-        //  callback: (text: string) => void,
+        callback: (text: string) => void,
     ) {
         try {
             const worker = await getNodeProcess();
             console.log("Sent request to node process for streaming");
-            return await worker.analyzeWithGeminiStream(request);
+            return await worker.analyzeWithGeminiStream(request, callback);
         } catch (error) {
             console.error("Error analyzing with Gemini Stream: ", error);
             throw String(error);

@@ -1,4 +1,4 @@
-import { Message } from "../App";
+import { Message } from "../types";
 
 export const messagesTemp = [
     {
@@ -9,7 +9,7 @@ export const messagesTemp = [
     {
         message:
             "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-        type: "ai",
+        type: "model",
     },
 
     {
@@ -20,7 +20,7 @@ export const messagesTemp = [
     {
         message:
             "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-        type: "ai",
+        type: "model",
     },
 
     {
@@ -32,6 +32,6 @@ export const messagesTemp = [
     {
         message:
             "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
-        type: "ai",
+        type: "model",
     },
 ] as Message[];

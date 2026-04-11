@@ -1,7 +1,6 @@
 import { useState } from "react";
-import { Message } from "../App";
 import node_api from "../api/node-api";
-import type { UserInput } from "../types";
+import type { GeminiContent, Message, UserInput } from "../types";
 
 const geminiRequest = async (request: UserInput) => {
     try {
@@ -20,27 +19,30 @@ const geminiRequestStream = async (
         let accumulatedText = "";
         setMessages((msgs) =>
             msgs.length
-                ? [...msgs, { message: accumulatedText, type: "ai" }]
-                : [{ message: accumulatedText, type: "ai" }],
+                ? [...msgs, { message: accumulatedText, type: "model" }]
+                : [{ message: accumulatedText, type: "model" }],
         );
         const callback = (text: string) => {
             accumulatedText += text;
             setMessages((msgs) => {
                 const lastMessage = msgs[msgs.length - 1];
-                if (lastMessage && lastMessage.type === "ai") {
+                if (lastMessage && lastMessage.type === "model") {
                     return [
                         ...msgs.slice(0, -1),
-                        { message: accumulatedText, type: "ai" },
+                        { message: accumulatedText, type: "model" },
                     ];
                 }
-                return [...msgs, { message: accumulatedText, type: "ai" }];
+                return [...msgs, { message: accumulatedText, type: "model" }];
             });
 
             console.log(text);
         };
 
         console.log("Sent request in client");
-        const response = await node_api.analyzeWithGeminiStream(request);
+        const response = await node_api.analyzeWithGeminiStream(
+            request,
+            callback,
+        );
 
         return { type: "gemini", text: response, error: "" };
     } catch (error) {
@@ -97,18 +99,41 @@ const groqRequest = async (request: {
 
 export default function useHandleAiQuery(
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
+    messages: Message[],
 ) {
     const [error, setError] = useState("");
     const [isAIResponsePending, setIsAIResponsePending] = useState(false);
 
     //  const [response, setResponse] = useState("");
+    const getHistory = () => {
+        const history: GeminiContent[] = messages.length
+            ? messages
+                  .slice(Math.max(0, messages.length - 4), -1)
+                  .map((msg) => {
+                      return {
+                          role: msg.type,
+                          parts: [
+                              {
+                                  text: msg.message,
+                              },
+                          ],
+                      };
+                  })
+            : [];
+
+        return history;
+    };
+
     const sendAiRequest = async (prompt: string, images: string[]) => {
         setError("");
         setIsAIResponsePending(true);
 
+        const history = getHistory();
+
         const request = {
             prompt,
             screenshots: images,
+            history,
         };
 
         const res = await geminiRequestStream(request, setMessages);
@@ -121,13 +146,14 @@ export default function useHandleAiQuery(
 
         const aiMessage: Message = {
             message: res.text,
-            type: "ai",
+            type: "model",
         };
-        setMessages((msgs) =>
-            msgs.length ? [...msgs, aiMessage] : [aiMessage],
-        );
+        // setMessages((msgs) =>
+        //     msgs.length ? [...msgs, aiMessage] : [aiMessage],
+        // );
 
-        return res.error;
+        // return res.error;
+        return aiMessage;
     };
 
     return {
