@@ -84,7 +84,15 @@ const ai_api: Pick<
                         role: "user",
                         parts: [
                             {
-                                text: "History ends here and new prompt starts here, answer the question based on the history only if needed or relevant. If the question can be answered without the history, you can ignore the history. Always answer the question based on your understanding and knowledge. Here is the question: ",
+                                text: "History ends here and new prompt starts here.",
+                            },
+                        ],
+                    },
+                    {
+                        role: "user",
+                        parts: [
+                            {
+                                text: "answer the question based on the history only if needed or relevant. If the question can be answered without the history, you can ignore the history. Always answer the question based on your understanding and knowledge. If chat history is empty, suggest a suitable chat title based  on the question and surround it with double angle brackets like this <<chat title>> for easy extraction and make sure it appears first.  Now here is the user question: ",
                             },
                         ],
                     },

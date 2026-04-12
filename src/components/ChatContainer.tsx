@@ -29,10 +29,18 @@ const UserMessageBox = ({ msg }: { msg: Message }) => {
     );
 };
 
-const AIMessageBox = ({ msg }: { msg: Message }) => {
+const AIMessageBox = ({
+    msg,
+    isAIResponsePending,
+}: {
+    msg: Message;
+    isAIResponsePending: boolean;
+}) => {
     return (
         <div className="w-full bg-transparent self-start p-3">
             <Streamdown
+                isAnimating={isAIResponsePending}
+                animated
                 plugins={{
                     code,
                     mermaid,
@@ -48,9 +56,11 @@ const AIMessageBox = ({ msg }: { msg: Message }) => {
 const ChatContainer = ({
     messages,
     setMessages,
+    isAIResponsePending,
 }: {
     messages: Message[];
     setMessages: Dispatch<SetStateAction<Message[]>>;
+    isAIResponsePending: boolean;
 }) => {
     return (
         <div
@@ -66,7 +76,15 @@ const ChatContainer = ({
                             case "user":
                                 return <UserMessageBox key={i} msg={msg} />;
                             case "model":
-                                return <AIMessageBox key={i} msg={msg} />;
+                                return (
+                                    <AIMessageBox
+                                        key={i}
+                                        msg={msg}
+                                        isAIResponsePending={
+                                            isAIResponsePending
+                                        }
+                                    />
+                                );
                             default:
                                 return <UserMessageBox key={i} msg={msg} />;
                         }

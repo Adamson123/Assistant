@@ -6,21 +6,21 @@ import ChatContainer from "./components/ChatContainer";
 import { getCurrentWindow, LogicalSize } from "@tauri-apps/api/window";
 import { MessageCirclePlus, PanelLeft } from "lucide-react";
 import ChatHistory from "./components/ChatHistory";
-import { messagesTemp } from "./data/messagesTemp";
 import { Message } from "./types";
 import useHandleAiQuery from "./hooks/useHandleAI";
+import messagesMock from "./data/messagesMock";
 
 function App() {
     const [fold, setFold] = useState(false);
     const [showAssistant, setShowAssistant] = useState(false);
-    const [messages, setMessages] = useState<Message[]>(messagesTemp);
-    // const { isAIResponsePending } = useHandleAiQuery(setMessages, messages);
-
-    // console.log({ isAIResponsePending })
+    const [messages, setMessages] = useState<Message[]>([]);
+    const { error, sendAiRequest, isAIResponsePending } = useHandleAiQuery(
+        setMessages,
+        messages,
+    );
 
     const foldWindow = async () => {
         // if (fold) return;
-
         const window = getCurrentWindow();
         const size = await window.innerSize();
 
@@ -108,14 +108,16 @@ function App() {
                         <ChatContainer
                             messages={messages}
                             setMessages={setMessages}
+                            isAIResponsePending={isAIResponsePending}
                         />
                     </>
                 )}
 
                 <PromptInput
                     unFoldWindow={unFoldWindow}
-                    messages={messages}
                     setMessages={setMessages}
+                    isAIResponsePending={isAIResponsePending}
+                    sendAiRequest={sendAiRequest}
                 />
             </div>
         </main>

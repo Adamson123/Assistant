@@ -2,7 +2,6 @@ import { ArrowUp, Loader2, Plus, ScreenShare, X } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
-import useHandleAiQuery from "../hooks/useHandleAI";
 import node_api from "../api/node-api";
 import { Message } from "../types";
 
@@ -17,19 +16,18 @@ export async function capture() {
 const PromptInput = ({
     unFoldWindow,
     setMessages,
-    messages,
+    isAIResponsePending,
+    sendAiRequest,
 }: {
     unFoldWindow: () => void;
-    messages: Message[];
+    // messages: Message[];
     setMessages: Dispatch<SetStateAction<Message[]>>;
+    isAIResponsePending: boolean;
+    sendAiRequest: (prompt: string, images: string[]) => void;
 }) => {
     const [imgs, setImgs] = useState<string[]>([]);
     const [previewedImg, setPreviewedImg] = useState("");
     const [prompt, setPrompt] = useState("");
-    const { error, sendAiRequest, isAIResponsePending } = useHandleAiQuery(
-        setMessages,
-        messages,
-    );
 
     const handleScreenShot = async () => {
         const result = await capture();
@@ -40,13 +38,8 @@ const PromptInput = ({
             compressed: img.length,
             diff: result.length - img.length,
         });
-        // console.log(img);
 
         setImgs((imgs) => (imgs.length ? [...imgs, img] : [img]));
-        // const ana_res = await node_api.createFile("image.webp", img);
-        // console.log({ ana_res });
-
-        //if (fold) foldWindow();
     };
 
     const deleteImg = (index: number) => {
@@ -62,14 +55,6 @@ const PromptInput = ({
 
     const onSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
-        /*
-      {
-      prompt,
-      screenshots,
-      otherFiles,
-      pastReplies
-      }
-      */
 
         const userMessage: Message = {
             message: prompt,

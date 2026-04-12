@@ -1,6 +1,6 @@
 import { Message } from "../types";
 
-export const messagesTemp = [
+const messagesMock: Message[] = [
     {
         message:
             "Hello AI Assistant, How are you doing my guy oooooooo hahahahhahahhahahhahahah?",
@@ -34,4 +34,6 @@ export const messagesTemp = [
             "Hello AI AssSAIK SPKSPstant, How are you doing my guy oooooooo sekwqeowkpokwepsok?",
         type: "model",
     },
-] as Message[];
+];
+
+export default messagesMock;
