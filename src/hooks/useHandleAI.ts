@@ -35,7 +35,7 @@ const geminiRequestStream = async (
                 return [...msgs, { message: accumulatedText, type: "model" }];
             });
 
-            console.log(text);
+            //   console.log(text);
         };
 
         console.log("Sent request in client");

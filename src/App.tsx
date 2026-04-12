@@ -8,11 +8,15 @@ import { MessageCirclePlus, PanelLeft } from "lucide-react";
 import ChatHistory from "./components/ChatHistory";
 import { messagesTemp } from "./data/messagesTemp";
 import { Message } from "./types";
+import useHandleAiQuery from "./hooks/useHandleAI";
 
 function App() {
     const [fold, setFold] = useState(false);
     const [showAssistant, setShowAssistant] = useState(false);
     const [messages, setMessages] = useState<Message[]>(messagesTemp);
+    // const { isAIResponsePending } = useHandleAiQuery(setMessages, messages);
+
+    // console.log({ isAIResponsePending })
 
     const foldWindow = async () => {
         // if (fold) return;

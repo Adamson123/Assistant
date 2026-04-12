@@ -1,18 +1,15 @@
 /// <reference types="node" />
+console.log("Node worker started, waiting for RPC calls...");
 
-import type { NodeBackendAPI, UserInput } from "./../types/index";
+import type { NodeBackendAPI } from "./../types/index";
 import { RPCChannel, NodeIo } from "kkrpc";
 import fs from "fs/promises";
 import path from "path";
 //@ts-expect-error
 import { parse } from "envfile";
-import { GoogleGenAI } from "@google/genai";
-import { getEnvInRoot, projectRoot, structureForGemini } from "./node-utils.ts";
-
-const env = await getEnvInRoot();
-//const genAI = new GoogleGenerativeAI(env.VITE_GEMINI_API_KEY);
-//const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-const ai = new GoogleGenAI({ apiKey: env.VITE_GEMINI_API_KEY });
+import { projectRoot } from "./node-utils.ts";
+import ai_api from "./node-ai-api.ts";
+import sharp from "sharp";
 
 const api: NodeBackendAPI = {
     analyzeImage: async (filePath: string) => {
@@ -32,62 +29,33 @@ const api: NodeBackendAPI = {
             throw String(error);
         }
     },
-
-    analyzeWithGemini: async (request: UserInput) => {
+    compressWebPDataUrl: async (dataUrl: string) => {
         try {
-            //const result = await genAI.generateContent(request);
-            const parts = structureForGemini(request);
+            // 1. Extract the Base64 part (removes "data:image/webp;base64,")
+            const base64Data = dataUrl.replace(/^data:image\/webp;base64,/, "");
 
-            const result = await ai.models.generateContent({
-                model: "gemini-2.5-flash",
-                contents: [{ role: "user", parts }],
-            });
+            // 2. Convert Base64 to Buffer
+            const imgBuffer = Buffer.from(base64Data, "base64");
 
-            return result.text || "";
+            // 3. Process with Sharp
+
+            const compressedBuffer = await sharp(imgBuffer)
+                .resize(1536, null, { withoutEnlargement: true }) // Reduce width to 800px
+                .webp({ quality: 75 }) // Re-encode as WebP with lower quality
+                .toBuffer();
+
+            // 4. Convert back to Data URL (optional)
+            const compressedDataUrl = `data:image/webp;base64,${compressedBuffer.toString("base64")}`;
+
+            console.log("Image compressed");
+
+            return compressedDataUrl as string; // Or return compressedBuffer for file saving
         } catch (error) {
             throw String(error);
         }
     },
-
-    analyzeWithGeminiStream: async (
-        request: UserInput,
-        callback: (text: string) => void,
-    ) => {
-        try {
-            //const result = await genAI.generateContent(request);
-            console.log("Recieved request for analytics");
-
-            const parts = structureForGemini(request);
-
-            console.log("Request sent");
-
-            const result = await ai.models.generateContentStream({
-                model: "gemini-2.5-flash",
-                contents: [...request.history, { role: "user", parts }],
-            });
-
-            console.log("Stream started");
-            let accumulatedText = "";
-            for await (const part of result) {
-                if (part.text) {
-                    accumulatedText += part.text;
-                    console.log("Recieved Part: ", part.text);
-                    // await fs.writeFile(
-                    //     path.join(projectRoot, "streams/stream_output.txt"),
-                    //     accumulatedText,
-                    // );
-                    callback(part.text);
-                }
-            }
-
-            return accumulatedText;
-        } catch (error) {
-            throw String(error);
-        }
-    },
+    ...ai_api,
 };
 
 const io = new NodeIo(process.stdin, process.stdout);
 new RPCChannel(io, { expose: api });
-
-console.log("Node worker started, waiting for RPC calls...");

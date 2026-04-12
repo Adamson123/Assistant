@@ -1,5 +1,7 @@
 export interface Env {
     VITE_GEMINI_API_KEY: string;
+    VITE_GEMINI_API_KEY_2: string;
+    VITE_GEMINI_API_KEY_3: string;
     VITE_MISTRA_API_KEY: string;
     VITE_GROQ_API_KEY: string;
 }
@@ -30,6 +32,7 @@ export interface NodeBackendAPI {
     analyzeImage(filePath: string): Promise<string>;
     generateText(prompt: string): Promise<string>;
     createFile(fileName: string, data: string): Promise<string>;
+    compressWebPDataUrl(dataUrl: string): Promise<string>;
     analyzeWithGemini(request: UserInput): Promise<string>;
     analyzeWithGeminiStream(
         request: UserInput,

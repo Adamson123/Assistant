@@ -71,6 +71,16 @@ const node_api: NodeBackendAPI = {
             throw String(error);
         }
     },
+
+    async compressWebPDataUrl(dataUrl: string) {
+        try {
+            const worker = await getNodeProcess();
+            return await worker.compressWebPDataUrl(dataUrl);
+        } catch (error) {
+            console.error("Error compressing WebP image: ", error);
+            throw String(error);
+        }
+    },
 };
 
 export default node_api;

@@ -1,32 +1,8 @@
 import { ArrowUp, Loader2, Plus, ScreenShare, X } from "lucide-react";
-
-// const PromptInput = () => {
-//   return (
-//     <div className="fixed bottom-0 p-5 w-full">
-//       <div
-//         className="border-third-color border
-//        rounded-2xl bg-secondary-color w-full p-5 flex flex-col"
-//       >
-//         <textarea
-//           style={{
-//             scrollbarWidth: "none",
-//           }}
-//           placeholder="Enter prompt"
-//           className="w-full resize-none outline-none min-h-10 max-h-40"
-//         />
-//         <div className="flex gap-6 self-end">
-//           <PlusCircleIcon />
-//           <ScreenShare />
-//         </div>
-//       </div>
-//     </div>
-//   );
-// };
-
 import { invoke } from "@tauri-apps/api/core";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
-import useHandleAiQuery from "./useHandleAI";
+import useHandleAiQuery from "../hooks/useHandleAI";
 import node_api from "../api/node-api";
 import { Message } from "../types";
 
@@ -37,57 +13,6 @@ export async function capture() {
     html.style.opacity = "1";
     return `data:image/webp;base64,${base64}`;
 }
-
-const reduceImgSize = async (img: string) => {
-    //  return img;
-    const MAX_DIMENSION = 1280;
-    const START_QUALITY = 0.8;
-    const MIN_QUALITY = 0.45;
-    const MAX_BYTES = 350_000;
-
-    const compressOne = async (dataUrl: string): Promise<string> => {
-        try {
-            const image = await new Promise<HTMLImageElement>(
-                (resolve, reject) => {
-                    const img = new Image();
-                    img.onload = () => resolve(img);
-                    img.onerror = () => reject(new Error("Image load failed"));
-                    img.src = dataUrl;
-                },
-            );
-
-            const ratio = Math.min(
-                1,
-                MAX_DIMENSION / Math.max(image.width, image.height),
-            );
-            const width = Math.max(1, Math.round(image.width * ratio));
-            const height = Math.max(1, Math.round(image.height * ratio));
-
-            const canvas = document.createElement("canvas");
-            canvas.width = width;
-            canvas.height = height;
-
-            const ctx = canvas.getContext("2d");
-            if (!ctx) return dataUrl;
-
-            ctx.drawImage(image, 0, 0, width, height);
-
-            let quality = START_QUALITY;
-            let output = canvas.toDataURL("image/webp", quality);
-
-            while (output.length > MAX_BYTES && quality > MIN_QUALITY) {
-                quality -= 0.1;
-                output = canvas.toDataURL("image/webp", quality);
-            }
-
-            return output;
-        } catch {
-            return dataUrl;
-        }
-    };
-    //Promise.all(imgs.map((img) => compressOne(img)));
-    return compressOne(img);
-};
 
 const PromptInput = ({
     unFoldWindow,
@@ -107,11 +32,19 @@ const PromptInput = ({
     );
 
     const handleScreenShot = async () => {
-        const img = await capture();
+        const result = await capture();
         //  const img = await reduceImgSize(result);
+        const img = await node_api.compressWebPDataUrl(result);
+        console.log({
+            original: result.length,
+            compressed: img.length,
+            diff: result.length - img.length,
+        });
+        // console.log(img);
+
         setImgs((imgs) => (imgs.length ? [...imgs, img] : [img]));
-        const ana_res = await node_api.createFile("image.webp", img);
-        console.log({ ana_res });
+        // const ana_res = await node_api.createFile("image.webp", img);
+        // console.log({ ana_res });
 
         //if (fold) foldWindow();
     };
