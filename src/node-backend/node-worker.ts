@@ -58,5 +58,9 @@ const api: NodeBackendAPI = {
     ...ai_api,
 };
 
+// enum Test {
+//     hello = "ff",
+// }
+
 const io = new NodeIo(process.stdin, process.stdout);
 new RPCChannel(io, { expose: api });

@@ -16,6 +16,11 @@ export async function getNodeProcess(): Promise<NodeBackendAPI> {
         script: "../src/node-backend/node-worker.ts",
         cwd: ".",
     });
+    // nodeWorkerInstance = await createProcess(PROCESS_NAME, {
+    //     runtime: "node",
+    //     args: ["tsx", "../src/node-backend/node-worker.ts"],
+    //     cwd: ".",
+    // });
 
     return nodeWorkerInstance as NodeBackendAPI;
 }
@@ -64,7 +69,7 @@ const node_api: NodeBackendAPI = {
     ) {
         try {
             const worker = await getNodeProcess();
-            console.log("Sent request to node process for streaming");
+            //  console.log("Sent request to node process for streaming");
             return await worker.analyzeWithGeminiStream(request, callback);
         } catch (error) {
             console.error("Error analyzing with Gemini Stream: ", error);

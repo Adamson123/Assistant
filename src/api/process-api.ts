@@ -4,8 +4,12 @@ import {
     killAll,
     spawn,
     SpawnConfig,
+    onStderr,
+    //  onStdout,
 } from "tauri-plugin-js-api";
 import type { NodeBackendAPI } from "../types";
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
 
 let allProcessesKilled = false;
 window.addEventListener("load", () => {
@@ -18,16 +22,6 @@ window.addEventListener("load", () => {
             console.error("Error killing processes on load: ", error);
             allProcessesKilled = true;
         });
-
-    //To avoid hanging if killAll fails, we set a timeout to proceed anyway
-    setTimeout(() => {
-        if (!allProcessesKilled) {
-            allProcessesKilled = true;
-            console.warn(
-                "Proceeding without confirming all processes were killed",
-            );
-        }
-    }, 5000);
 });
 
 export const IsProcessRunning = async (processName: string) => {
@@ -44,8 +38,8 @@ export async function createProcess(
     processName: string,
     spawnConfig: SpawnConfig,
 ) {
-    while (!allProcessesKilled) {
-        console.log("Waiting for processes to be killed...");
+    if (!allProcessesKilled) {
+        await sleep(5000);
     }
 
     const nodeProcessRunning = await IsProcessRunning(processName);
@@ -62,6 +56,14 @@ export async function createProcess(
 
     console.log("Creating new process...");
     try {
+        // onStdout(processName, (data) => {
+        //     console.log("Process output: ", data);
+        // });
+
+        onStderr(processName, (data) => {
+            console.log("Process error: ", data);
+        });
+
         await spawn(processName, spawnConfig);
 
         const { api } = await createChannel<

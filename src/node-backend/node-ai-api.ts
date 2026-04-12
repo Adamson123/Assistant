@@ -1,6 +1,6 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { NodeBackendAPI, UserInput } from "../types/index.ts";
-import { getEnvInRoot, structureForGemini } from "./node-utils.ts";
+import { getEnvInRoot, logDebug, structureForGemini } from "./node-utils.ts";
 
 const env = await getEnvInRoot();
 //const genAI = new GoogleGenerativeAI(env.VITE_GEMINI_API_KEY);
@@ -25,7 +25,7 @@ const MODELS = {
     Gemini3FlashPreview: "gemini-3-flash-preview",
     Gemini3_1FlashLitePreview: "gemini-3.1-flash-lite-preview",
 };
-const CURRENT_MODEL = MODELS.Gemini2_5FlashLite;
+const CURRENT_MODEL = MODELS.Gemini3_1FlashLitePreview;
 
 const logTokensLeft = (response: GenerateContentResponse) => {
     if (!response) return;
@@ -66,9 +66,30 @@ const ai_api: Pick<
 
             const parts = structureForGemini(request);
 
+            logDebug("History: ", JSON.stringify(request.history));
+
             const result = await ai.models.generateContentStream({
                 model: CURRENT_MODEL,
-                contents: [...request.history, { role: "user", parts }],
+                contents: [
+                    {
+                        role: "user",
+                        parts: [
+                            {
+                                text: "History starts",
+                            },
+                        ],
+                    },
+                    ...request.history,
+                    {
+                        role: "user",
+                        parts: [
+                            {
+                                text: "History ends here and new prompt starts here, answer the question based on the history only if needed or relevant. If the question can be answered without the history, you can ignore the history. Always answer the question based on your understanding and knowledge. Here is the question: ",
+                            },
+                        ],
+                    },
+                    { role: "user", parts },
+                ],
             });
 
             console.log("Stream started");
