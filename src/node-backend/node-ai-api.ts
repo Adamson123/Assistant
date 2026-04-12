@@ -1,4 +1,4 @@
-import { GenerateContentResponse, GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { NodeBackendAPI, UserInput } from "../types/index.ts";
 import { getEnvInRoot, structureForGemini } from "./node-utils.ts";
 
@@ -7,13 +7,25 @@ const env = await getEnvInRoot();
 //const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 const ai = new GoogleGenAI({ apiKey: env.VITE_GEMINI_API_KEY_2 });
 
-const MODEL_LIMITS = {
-    "gemini-2.5-flash": 1048576, // ~1M (correct)
-    "gemini-1.5-pro": 2097152, // up to ~2M (Vertex AI full spec)
-    "gemini-1.5-flash": 1048576, // ~1M
-    "gemini-2.0-flash": 1048576, // optimistic max, may be lower in some APIs
+const MODEL_LIMITS: { [modelName: string]: number } = {
+    // Current Stable Free Tier Models
+    "gemini-2.5-flash": 1048576, // ~1M
+    "gemini-2.5-flash-lite": 1048576, // ~1M
+    "gemini-2.5-pro": 2097152, // ~2M (Vertex AI / High-tier limit)
+
+    // Current Preview Free Tier Models
+    "gemini-3-flash-preview": 1048576, // ~1M
+    "gemini-3.1-flash-lite-preview": 1048576, // ~1M
 };
-const CURRENT_MODEL = "gemini-2.5-flash";
+
+const MODELS = {
+    Gemini2_5Flash: "gemini-2.5-flash",
+    Gemini2_5FlashLite: "gemini-2.5-flash-lite",
+    Gemini2_5Pro: "gemini-2.5-pro",
+    Gemini3FlashPreview: "gemini-3-flash-preview",
+    Gemini3_1FlashLitePreview: "gemini-3.1-flash-lite-preview",
+};
+const CURRENT_MODEL = MODELS.Gemini2_5FlashLite;
 
 const logTokensLeft = (response: GenerateContentResponse) => {
     if (!response) return;
@@ -33,7 +45,7 @@ const ai_api: Pick<
 
             const result = await ai.models.generateContent({
                 model: CURRENT_MODEL,
-                contents: [{ role: "user", parts }],
+                contents: [...request.history, { role: "user", parts }],
             });
 
             logTokensLeft(result);

@@ -1,7 +1,6 @@
 /// <reference types="node" />
-console.log("Node worker started, waiting for RPC calls...");
 
-import type { NodeBackendAPI } from "./../types/index";
+import type { NodeBackendAPI } from "./../types/index.ts";
 import { RPCChannel, NodeIo } from "kkrpc";
 import fs from "fs/promises";
 import path from "path";
@@ -10,6 +9,8 @@ import { parse } from "envfile";
 import { projectRoot } from "./node-utils.ts";
 import ai_api from "./node-ai-api.ts";
 import sharp from "sharp";
+
+console.log("Node worker started, waiting for RPC calls...");
 
 const api: NodeBackendAPI = {
     analyzeImage: async (filePath: string) => {

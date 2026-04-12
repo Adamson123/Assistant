@@ -1,4 +1,4 @@
-import type { Env, UserInput } from "./../types/index";
+import type { Env, UserInput } from "./../types/index.ts";
 import fs from "fs/promises";
 import path from "path";
 //@ts-expect-error
@@ -8,10 +8,21 @@ export const srcTauri = process.cwd();
 export const projectRoot = path.dirname(srcTauri);
 
 export const getEnvInRoot = async (): Promise<Env> => {
-    const envDir = path.join(projectRoot, ".env");
-    const content = await fs.readFile(envDir);
-    const parsed = parse(content);
-    return parsed;
+    try {
+        const envDir = path.join(projectRoot, ".env");
+        const content = await fs.readFile(envDir);
+        const parsed = parse(content);
+        return parsed;
+    } catch (error) {
+        console.log("Error passing env");
+        return {
+            VITE_GEMINI_API_KEY: "",
+            VITE_GEMINI_API_KEY_2: "",
+            VITE_GEMINI_API_KEY_3: "",
+            VITE_MISTRA_API_KEY: "",
+            VITE_GROQ_API_KEY: "",
+        };
+    }
 };
 
 export const logDebug = (message: string, details?: unknown) => {

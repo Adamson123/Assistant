@@ -27,7 +27,7 @@ window.addEventListener("load", () => {
                 "Proceeding without confirming all processes were killed",
             );
         }
-    }, 7000);
+    }, 5000);
 });
 
 export const IsProcessRunning = async (processName: string) => {
