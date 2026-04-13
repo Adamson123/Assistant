@@ -14,9 +14,10 @@ function App() {
     const [fold, setFold] = useState(false);
     const [showAssistant, setShowAssistant] = useState(false);
     const [messages, setMessages] = useState<Message[]>(messagesMock);
+    //TODO:Remove
     const chatContainerRef = useRef<HTMLDivElement>(null);
     const { error, sendAiRequest, isAIResponsePending, responseTitle } =
-        useHandleAiQuery(setMessages, messages, chatContainerRef as any);
+        useHandleAiQuery(setMessages, messages);
     const [chatTitle, setChatTitle] = useState("");
 
     const foldWindow = async () => {

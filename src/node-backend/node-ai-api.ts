@@ -1,6 +1,6 @@
-import { GoogleGenAI, GenerateContentResponse, ApiError } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { NodeBackendAPI, UserInput } from "../types/index.ts";
-import { getEnvInRoot, logDebug, structureForGemini } from "./node-utils.ts";
+import { getEnvInRoot, structureForGemini } from "./node-utils.ts";
 
 const env = await getEnvInRoot();
 //const genAI = new GoogleGenerativeAI(env.VITE_GEMINI_API_KEY);

@@ -8,13 +8,15 @@ import {
     //  onStdout,
 } from "tauri-plugin-js-api";
 import type { NodeBackendAPI } from "../types";
-
-const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+//import { sleep } from "../utils";
 
 let allProcessesKilled = false;
+let killProcessePromise: Promise<void> | null = null;
+
 window.addEventListener("load", () => {
-    killAll()
+    killProcessePromise = killAll()
         .then(() => {
+            // await sleep(5000);
             allProcessesKilled = true;
             console.log("Killed all processes on load");
         })
@@ -38,8 +40,10 @@ export async function createProcess(
     processName: string,
     spawnConfig: SpawnConfig,
 ) {
-    if (!allProcessesKilled) {
-        await sleep(5000);
+    if (!allProcessesKilled && killProcessePromise) {
+        // await sleep(5000);
+        console.log("Waiting for active processes to be killed...");
+        await killProcessePromise;
     }
 
     const nodeProcessRunning = await IsProcessRunning(processName);

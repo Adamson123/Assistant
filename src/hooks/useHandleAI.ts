@@ -78,7 +78,7 @@ const geminiRequestStream = async (
 export default function useHandleAiQuery(
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
     messages: Message[],
-    chatContainerRef: RefObject<HTMLDivElement>,
+    //  chatContainerRef: RefObject<HTMLDivElement>,
 ) {
     const [error, setError] = useState("");
     const [isAIResponsePending, setIsAIResponsePending] = useState(false);
@@ -94,7 +94,7 @@ export default function useHandleAiQuery(
     const scrollToBottom = () => {};
 
     useEffect(() => {
-        const container = chatContainerRef.current;
+        const container = document.querySelector(".chat"); //chatContainerRef.current;
         // const isNearBottom =
         //     container &&
         //     container.scrollHeight -
@@ -107,7 +107,7 @@ export default function useHandleAiQuery(
                 top: container.scrollHeight,
                 behavior: "smooth",
             });
-            console.log("Scrolling to bottom");
+            //  console.log("Scrolling to bottom");
         }
     }, [messages]);
 

@@ -6,27 +6,46 @@ import { math } from "@streamdown/math";
 import "katex/dist/katex.min.css";
 import "streamdown/styles.css";
 import { Message } from "../types";
-import { Circle, CircleX } from "lucide-react";
-import ReactDOMServer from "react-dom/server";
+import {
+    Circle,
+    CircleX,
+    Copy,
+    Edit2,
+    RefreshCcw,
+    Volume2,
+} from "lucide-react";
 
 const UserMessageBox = ({ msg }: { msg: Message }) => {
     return (
-        <div className="max-w-100 bg-third-color/30 self-end p-3 rounded-tl-xl rounded-bl-xl rounded-tr-xl flex flex-col">
-            <p>{msg.message}</p>
-            {msg.images?.length ? (
-                <div className="flex flex-wrap gap-1.5">
-                    {msg.images.map((img, i) => (
-                        <img
-                            key={i}
-                            src={img}
-                            alt="User sent image"
-                            className="size-7 object-cover rounded-lg mt-2"
-                        />
-                    ))}
-                </div>
-            ) : (
-                ""
-            )}
+        <div className="max-w-100 self-end flex flex-col gap-1 group">
+            <div className="bg-third-color/30  p-3 rounded-tl-xl rounded-bl-xl rounded-tr-xl flex flex-col">
+                <p>{msg.message}</p>
+                {msg.images?.length ? (
+                    <div className="flex flex-wrap gap-1.5">
+                        {msg.images.map((img, i) => (
+                            <img
+                                key={i}
+                                src={img}
+                                alt="User sent image"
+                                className="size-7 object-cover rounded-lg mt-2not-last:"
+                            />
+                        ))}
+                    </div>
+                ) : (
+                    ""
+                )}
+            </div>
+            <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                    <Copy className="size-5 stroke-third-color" />
+                </button>
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                    <RefreshCcw className="size-5 stroke-third-color" />
+                </button>
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                    <Edit2 className="size-5 stroke-third-color" />
+                </button>
+            </div>
         </div>
     );
 };
@@ -43,7 +62,7 @@ const AIMessageBox = ({
     const circleRef = useRef<SVGSVGElement>(null);
 
     return (
-        <div className="w-full bg-transparent self-start p-3">
+        <div className="w-full bg-transparent self-start p-3 group">
             <Streamdown
                 isAnimating={isAIResponsePending}
                 //animated
@@ -52,19 +71,6 @@ const AIMessageBox = ({
                     mermaid,
                     math,
                 }}
-                className="inline stream"
-                // components={{
-                //     div: ({ children }) => (
-                //         <div>
-                //             {children}
-                //             <Circle
-                //                 ref={circleRef as any}
-                //                 className="fill-white size-3.5 animate-pulse circle inline"
-                //             />
-                //         </div>
-                //     ),
-                // }}
-
                 allowedTags={{
                     circle: [],
                 }}
@@ -79,6 +85,14 @@ const AIMessageBox = ({
             >
                 {msg.message + (showBlinkingCircle ? " <circle/>" : "")}
             </Streamdown>
+            <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                    <Copy className="size-5 stroke-third-color" />
+                </button>
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                    <Volume2 className="size-5 stroke-third-color" />
+                </button>
+            </div>
         </div>
     );
 };
