@@ -32,7 +32,7 @@ const node_api: NodeBackendAPI = {
             return await worker.analyzeImage(filePath);
         } catch (error) {
             console.error("Error analyzing image: ", error);
-            throw String(error);
+            throw error;
         }
     },
     async generateText(prompt: string) {
@@ -41,7 +41,7 @@ const node_api: NodeBackendAPI = {
             return await worker.generateText(prompt);
         } catch (error) {
             console.error("Error generating text: ", error);
-            throw String(error);
+            throw error;
         }
     },
     async createFile(fileName: string, data: string) {
@@ -50,7 +50,7 @@ const node_api: NodeBackendAPI = {
             return await worker.createFile(fileName, data);
         } catch (error) {
             console.error("Error creating file: ", error);
-            throw String(error);
+            throw error;
         }
     },
     async analyzeWithGemini(request: UserInput) {
@@ -59,7 +59,7 @@ const node_api: NodeBackendAPI = {
             return await worker.analyzeWithGemini(request);
         } catch (error) {
             console.error("Error analyzing with Gemini: ", error);
-            throw String(error);
+            throw error;
         }
     },
 
@@ -73,7 +73,7 @@ const node_api: NodeBackendAPI = {
             return await worker.analyzeWithGeminiStream(request, callback);
         } catch (error) {
             console.error("Error analyzing with Gemini Stream: ", error);
-            throw String(error);
+            throw error;
         }
     },
 
@@ -83,7 +83,7 @@ const node_api: NodeBackendAPI = {
             return await worker.compressWebPDataUrl(dataUrl);
         } catch (error) {
             console.error("Error compressing WebP image: ", error);
-            throw String(error);
+            throw error;
         }
     },
 };

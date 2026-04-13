@@ -2,10 +2,24 @@ import { useState } from "react";
 import node_api from "../api/node-api";
 import type { GeminiContent, Message, UserInput } from "../types";
 
+const removeResponseTitleFromText = (text: string) => {
+    return text.replace(/\?\?.*?\?\?/, "").trim();
+};
+
+const extractResponseTitleFromText = (text: string) => {
+    const title = text.match(/\?\?(.*?)\?\?/);
+    const result = title ? title[1] : "";
+    return result;
+};
+
 const geminiRequest = async (request: UserInput) => {
     try {
         const response = await node_api.analyzeWithGemini(request);
-        return { type: "gemini", text: response, error: "" };
+        return {
+            type: "gemini",
+            text: removeResponseTitleFromText(response),
+            error: "",
+        };
     } catch (error) {
         return { type: "gemini", text: "", error: String(error) };
     }
@@ -24,6 +38,7 @@ const geminiRequestStream = async (
         );
         const callback = (text: string) => {
             accumulatedText += text;
+            accumulatedText = removeResponseTitleFromText(accumulatedText);
             setMessages((msgs) => {
                 const lastMessage = msgs[msgs.length - 1];
                 if (lastMessage && lastMessage.type === "model") {
@@ -46,55 +61,17 @@ const geminiRequestStream = async (
 
         return { type: "gemini", text: response, error: "" };
     } catch (error) {
-        return { type: "gemini", text: "", error: String(error) };
+        console.log(error, "Error in client");
+
+        return {
+            type: "gemini",
+            text: "",
+            error:
+                JSON.parse((error as Error).message)?.error?.message ||
+                (error as Error).message ||
+                "Something went wrong",
+        };
     }
-};
-
-const mistraRequest = async (request: {
-    prompt: string;
-    screenshots: string[];
-}) => {
-    const apiKey = import.meta.env.VITE_MISTRA_API_KEY;
-    const url = "https://api.mistral.ai/v1/chat/completions";
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${apiKey}`,
-        },
-        body: JSON.stringify({
-            model: "mistral-small-latest",
-            messages: [{ role: "user", content: JSON.stringify(request) }],
-        }),
-    });
-
-    return { response, type: "mistra" };
-};
-
-const groqRequest = async (request: {
-    prompt: string;
-    screenshots: string[];
-}) => {
-    const apiKey = import.meta.env.VITE_GROQ_API_KEY;
-    const url = "https://api.groq.com/openai/v1/chat/completions";
-    const response = await fetch(url, {
-        method: "POST",
-        headers: {
-            Authorization: `Bearer ${apiKey}`, // don't hardcode 😤
-            "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-            model: "openai/gpt-oss-120b",
-            messages: [
-                {
-                    role: "user",
-                    content: JSON.stringify(request),
-                },
-            ],
-        }),
-    });
-
-    return { response, type: "groq" };
 };
 
 export default function useHandleAiQuery(
@@ -103,8 +80,27 @@ export default function useHandleAiQuery(
 ) {
     const [error, setError] = useState("");
     const [isAIResponsePending, setIsAIResponsePending] = useState(false);
+    const [responseTitle, setResponseTitle] = useState("");
 
-    //  const [response, setResponse] = useState("");
+    const updateResponseTitle = (text: string) => {
+        const title = extractResponseTitleFromText(text);
+        setResponseTitle(title);
+    };
+
+    // const removeTitleFromLastResponse = () => {
+    //     setMessages((msgs) => {
+    //         const lastMessage = msgs[msgs.length - 1];
+    //         if (lastMessage && lastMessage.type === "model") {
+    //             const newText = lastMessage.message
+    //                 .replace(/\?\?.*?\?\?/, "")
+    //                 .trim();
+    //             const updatedMessage = { ...lastMessage, message: newText };
+    //             return [...msgs.slice(0, -1), updatedMessage];
+    //         }
+    //         return msgs;
+    //     });
+    // };
+
     const getHistory = () => {
         const history: GeminiContent[] = messages.length
             ? messages
@@ -141,18 +137,29 @@ export default function useHandleAiQuery(
 
         if (res.error) {
             setError(res.error);
+            //Remove the pending message if there's an error
+            setMessages((msgs) => {
+                const lastMessage = msgs[msgs.length - 1];
+                if (
+                    lastMessage &&
+                    lastMessage.type === "model" &&
+                    lastMessage.message === ""
+                ) {
+                    return msgs.slice(0, -1);
+                }
+                return msgs;
+            });
             return;
         }
+
+        updateResponseTitle(res.text);
+        // removeTitleFromLastResponse();
 
         const aiMessage: Message = {
             message: res.text,
             type: "model",
         };
-        // setMessages((msgs) =>
-        //     msgs.length ? [...msgs, aiMessage] : [aiMessage],
-        // );
 
-        // return res.error;
         return aiMessage;
     };
 
@@ -160,5 +167,6 @@ export default function useHandleAiQuery(
         sendAiRequest,
         error,
         isAIResponsePending,
+        responseTitle,
     };
 }

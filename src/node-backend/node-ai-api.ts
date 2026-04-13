@@ -1,4 +1,4 @@
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, ApiError } from "@google/genai";
 import type { NodeBackendAPI, UserInput } from "../types/index.ts";
 import { getEnvInRoot, logDebug, structureForGemini } from "./node-utils.ts";
 
@@ -16,6 +16,8 @@ const MODEL_LIMITS: { [modelName: string]: number } = {
     // Current Preview Free Tier Models
     "gemini-3-flash-preview": 1048576, // ~1M
     "gemini-3.1-flash-lite-preview": 1048576, // ~1M
+
+    "wrong-model": 0, // For testing error handling
 };
 
 const MODELS = {
@@ -24,14 +26,28 @@ const MODELS = {
     Gemini2_5Pro: "gemini-2.5-pro",
     Gemini3FlashPreview: "gemini-3-flash-preview",
     Gemini3_1FlashLitePreview: "gemini-3.1-flash-lite-preview",
+    WRONG_MODEL: "wrong-model",
 };
-const CURRENT_MODEL = MODELS.Gemini3_1FlashLitePreview;
+const CURRENT_MODEL = MODELS.Gemini2_5FlashLite;
 
 const logTokensLeft = (response: GenerateContentResponse) => {
     if (!response) return;
     const tokensUsed = response.usageMetadata?.totalTokenCount || 0;
     const tokensLeft = MODEL_LIMITS[CURRENT_MODEL] - tokensUsed;
     console.log(`Tokens used: ${tokensUsed}, Tokens left: ${tokensLeft}`);
+};
+
+const extractError = (err: any) => {
+    try {
+        const raw = err?.message;
+
+        // Try parsing directly
+        const parsed = JSON.parse(raw);
+
+        return parsed?.error?.message || raw;
+    } catch {
+        return err?.message || "Something went wrong";
+    }
 };
 
 const ai_api: Pick<
@@ -66,8 +82,60 @@ const ai_api: Pick<
 
             const parts = structureForGemini(request);
 
-            logDebug("History: ", JSON.stringify(request.history));
+            logDebug("History:", JSON.stringify(request.history ?? []));
 
+            //             const instructionBlock = {
+            //                 role: "user",
+            //                 parts: [
+            //                     {
+            //                         text: `
+            // YOU ARE A STRICT OUTPUT ENGINE.
+
+            // ABSOLUTE RULES:
+
+            // 1. DO NOT GREET UNDER ANY CONDITION
+            //    - No "Hello"
+            //    - No "Hi"
+            //    - No "I am ready"
+
+            // 2. OUTPUT FORMAT RULES:
+
+            // IF chat history is EMPTY:
+            // - FIRST LINE MUST BE:
+            // ??Chat Title??
+            // - SECOND LINE: answer the question
+
+            // IF chat history EXISTS:
+            // - DO NOT output title
+            // - Just answer the question
+
+            // 3. NO EXTRA TEXT ALLOWED:
+            // - No explanations
+            // - No reasoning
+            // - No filler words
+            // - No politeness
+
+            // 4. OUTPUT MUST START IMMEDIATELY
+            // `,
+            //                     },
+            //                 ],
+            //             };
+
+            //             const result = await ai.models.generateContentStream({
+            //                 model: CURRENT_MODEL,
+            //                 contents: [
+            //                     instructionBlock,
+
+            //                     // 🚫 untouched history (as you wanted)
+            //                     ...request.history,
+
+            //                     // 🚫 untouched parts (as you demanded)
+            //                     {
+            //                         role: "user",
+            //                         parts,
+            //                     },
+            //                 ],
+            //             });
             const result = await ai.models.generateContentStream({
                 model: CURRENT_MODEL,
                 contents: [
@@ -75,7 +143,7 @@ const ai_api: Pick<
                         role: "user",
                         parts: [
                             {
-                                text: "History starts",
+                                text: "History starts.",
                             },
                         ],
                     },
@@ -84,7 +152,7 @@ const ai_api: Pick<
                         role: "user",
                         parts: [
                             {
-                                text: "History ends here and new prompt starts here.",
+                                text: "History ends here. New prompt starts below.",
                             },
                         ],
                     },
@@ -92,7 +160,7 @@ const ai_api: Pick<
                         role: "user",
                         parts: [
                             {
-                                text: "answer the question based on the history only if needed or relevant. If the question can be answered without the history, you can ignore the history. Always answer the question based on your understanding and knowledge. If chat history is empty, suggest a suitable chat title based  on the question and surround it with double angle brackets like this <<chat title>> for easy extraction and make sure it appears first.  Now here is the user question: ",
+                                text: "Suggest a chat title based on the user's question. If you choose to suggest one, it must appear at the very beginning of your response, surrounded by double question marks like ??Chat Title??, followed by a line break, then continue with your answer. If you do not suggest a title, just answer the question normally. Always answer the question based on your understanding and knowledge. You may use the chat history only if it is relevant and necessary. Now here is the user question: ",
                             },
                         ],
                     },
@@ -120,7 +188,11 @@ const ai_api: Pick<
 
             return accumulatedText;
         } catch (error) {
-            throw String(error);
+            // error = (error as string).replace("ApiError: ", "");
+            const errorMessage = extractError(error);
+            console.log("Error log backend: ", errorMessage);
+
+            throw errorMessage;
         }
     },
 };

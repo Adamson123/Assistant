@@ -14,10 +14,9 @@ function App() {
     const [fold, setFold] = useState(false);
     const [showAssistant, setShowAssistant] = useState(false);
     const [messages, setMessages] = useState<Message[]>([]);
-    const { error, sendAiRequest, isAIResponsePending } = useHandleAiQuery(
-        setMessages,
-        messages,
-    );
+    const { error, sendAiRequest, isAIResponsePending, responseTitle } =
+        useHandleAiQuery(setMessages, messages);
+    const [chatTitle, setChatTitle] = useState("");
 
     const foldWindow = async () => {
         // if (fold) return;
@@ -71,6 +70,10 @@ function App() {
         return () => observer.disconnect();
     }, [fold]);
 
+    useEffect(() => {
+        if (!chatTitle) setChatTitle(responseTitle);
+    }, [responseTitle]);
+
     return (
         <main className="h-screen items-center justify-center mainContainer w-full flex flex-col bg-primary-color">
             <Header toggleFold={toggleFold} />
@@ -99,7 +102,7 @@ function App() {
                             </div>
                             {/* Title */}
                             <h2 className="justify-self-center -translate-x-[120%] ml-[50%]">
-                                Godot Problem
+                                {chatTitle || "New Chat"}
                             </h2>
                         </div>
 
@@ -109,6 +112,7 @@ function App() {
                             messages={messages}
                             setMessages={setMessages}
                             isAIResponsePending={isAIResponsePending}
+                            error={error}
                         />
                     </>
                 )}

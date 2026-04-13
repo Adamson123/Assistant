@@ -6,6 +6,7 @@ import { math } from "@streamdown/math";
 import "katex/dist/katex.min.css";
 import "streamdown/styles.css";
 import { Message } from "../types";
+import { CircleX } from "lucide-react";
 
 const UserMessageBox = ({ msg }: { msg: Message }) => {
     return (
@@ -40,7 +41,7 @@ const AIMessageBox = ({
         <div className="w-full bg-transparent self-start p-3">
             <Streamdown
                 isAnimating={isAIResponsePending}
-                animated
+                //animated
                 plugins={{
                     code,
                     mermaid,
@@ -53,14 +54,25 @@ const AIMessageBox = ({
     );
 };
 
+const ErrorMessage = ({ error }: { error: string }) => {
+    return (
+        <div className="px-3 text-red-500  font-semibold gap-1 text-sm">
+            <p className="inline">{error}</p>{" "}
+            <CircleX className="size-5 stroke-primary-color fill-red-500 inline" />
+        </div>
+    );
+};
+
 const ChatContainer = ({
     messages,
     setMessages,
     isAIResponsePending,
+    error,
 }: {
     messages: Message[];
     setMessages: Dispatch<SetStateAction<Message[]>>;
     isAIResponsePending: boolean;
+    error: string;
 }) => {
     return (
         <div
@@ -70,7 +82,7 @@ const ChatContainer = ({
             className="chat grow overflow-y-auto w-full p-5"
         >
             {messages.length ? (
-                <div className="flex flex-col text-sm gap-5">
+                <div className="flex flex-col text-sm gap-3">
                     {messages.map((msg, i) => {
                         switch (msg.type) {
                             case "user":
@@ -97,6 +109,7 @@ const ChatContainer = ({
                     </h2>
                 </div>
             )}
+            {error && <ErrorMessage error={error} />}
         </div>
     );
 };
