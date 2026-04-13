@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 import "./index.css";
 import Header from "./components/Header";
 import PromptInput from "./components/PromptInput";
@@ -13,9 +13,10 @@ import messagesMock from "./data/messagesMock";
 function App() {
     const [fold, setFold] = useState(false);
     const [showAssistant, setShowAssistant] = useState(false);
-    const [messages, setMessages] = useState<Message[]>([]);
+    const [messages, setMessages] = useState<Message[]>(messagesMock);
+    const chatContainerRef = useRef<HTMLDivElement>(null);
     const { error, sendAiRequest, isAIResponsePending, responseTitle } =
-        useHandleAiQuery(setMessages, messages);
+        useHandleAiQuery(setMessages, messages, chatContainerRef as any);
     const [chatTitle, setChatTitle] = useState("");
 
     const foldWindow = async () => {
@@ -113,6 +114,9 @@ function App() {
                             setMessages={setMessages}
                             isAIResponsePending={isAIResponsePending}
                             error={error}
+                            chatContainerRef={
+                                chatContainerRef as RefObject<HTMLDivElement>
+                            }
                         />
                     </>
                 )}

@@ -5,7 +5,7 @@ import { getEnvInRoot, logDebug, structureForGemini } from "./node-utils.ts";
 const env = await getEnvInRoot();
 //const genAI = new GoogleGenerativeAI(env.VITE_GEMINI_API_KEY);
 //const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-const ai = new GoogleGenAI({ apiKey: env.VITE_GEMINI_API_KEY_2 });
+const ai = new GoogleGenAI({ apiKey: env.VITE_GEMINI_API_KEY });
 
 const MODEL_LIMITS: { [modelName: string]: number } = {
     // Current Stable Free Tier Models
@@ -82,7 +82,7 @@ const ai_api: Pick<
 
             const parts = structureForGemini(request);
 
-            logDebug("History:", JSON.stringify(request.history ?? []));
+            // logDebug("History:", JSON.stringify(request.history ?? []));
 
             //             const instructionBlock = {
             //                 role: "user",
@@ -190,7 +190,7 @@ const ai_api: Pick<
         } catch (error) {
             // error = (error as string).replace("ApiError: ", "");
             const errorMessage = extractError(error);
-            console.log("Error log backend: ", errorMessage);
+            // console.log("Error log backend: ", errorMessage);
 
             throw errorMessage;
         }

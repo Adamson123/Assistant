@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { RefObject, useEffect, useState } from "react";
 import node_api from "../api/node-api";
 import type { GeminiContent, Message, UserInput } from "../types";
 
@@ -28,6 +28,7 @@ const geminiRequest = async (request: UserInput) => {
 const geminiRequestStream = async (
     request: UserInput,
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
+    scrollToBottom: () => void = () => {},
 ) => {
     try {
         let accumulatedText = "";
@@ -49,7 +50,7 @@ const geminiRequestStream = async (
                 }
                 return [...msgs, { message: accumulatedText, type: "model" }];
             });
-
+            scrollToBottom();
             //   console.log(text);
         };
 
@@ -77,6 +78,7 @@ const geminiRequestStream = async (
 export default function useHandleAiQuery(
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
     messages: Message[],
+    chatContainerRef: RefObject<HTMLDivElement>,
 ) {
     const [error, setError] = useState("");
     const [isAIResponsePending, setIsAIResponsePending] = useState(false);
@@ -87,19 +89,27 @@ export default function useHandleAiQuery(
         setResponseTitle(title);
     };
 
-    // const removeTitleFromLastResponse = () => {
-    //     setMessages((msgs) => {
-    //         const lastMessage = msgs[msgs.length - 1];
-    //         if (lastMessage && lastMessage.type === "model") {
-    //             const newText = lastMessage.message
-    //                 .replace(/\?\?.*?\?\?/, "")
-    //                 .trim();
-    //             const updatedMessage = { ...lastMessage, message: newText };
-    //             return [...msgs.slice(0, -1), updatedMessage];
-    //         }
-    //         return msgs;
-    //     });
-    // };
+    //TODO: Auto scroll to bottom when new message arrives, only auto scroll if user is already near the bottom, if user has scrolled up, don't auto scroll until they scroll back down to the bottom 20% of the chat
+
+    const scrollToBottom = () => {};
+
+    useEffect(() => {
+        const container = chatContainerRef.current;
+        // const isNearBottom =
+        //     container &&
+        //     container.scrollHeight -
+        //         container.scrollTop -
+        //         container.clientHeight <
+        //         600; // 200px threshold
+
+        if (container) {
+            container.scrollTo({
+                top: container.scrollHeight,
+                behavior: "smooth",
+            });
+            console.log("Scrolling to bottom");
+        }
+    }, [messages]);
 
     const getHistory = () => {
         const history: GeminiContent[] = messages.length
@@ -132,7 +142,11 @@ export default function useHandleAiQuery(
             history,
         };
 
-        const res = await geminiRequestStream(request, setMessages);
+        const res = await geminiRequestStream(
+            request,
+            setMessages,
+            scrollToBottom,
+        );
         setIsAIResponsePending(false);
 
         if (res.error) {

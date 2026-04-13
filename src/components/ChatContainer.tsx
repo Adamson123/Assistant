@@ -1,4 +1,4 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from "react";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 import { mermaid } from "@streamdown/mermaid";
@@ -6,7 +6,8 @@ import { math } from "@streamdown/math";
 import "katex/dist/katex.min.css";
 import "streamdown/styles.css";
 import { Message } from "../types";
-import { CircleX } from "lucide-react";
+import { Circle, CircleX } from "lucide-react";
+import ReactDOMServer from "react-dom/server";
 
 const UserMessageBox = ({ msg }: { msg: Message }) => {
     return (
@@ -33,10 +34,14 @@ const UserMessageBox = ({ msg }: { msg: Message }) => {
 const AIMessageBox = ({
     msg,
     isAIResponsePending,
+    showBlinkingCircle,
 }: {
     msg: Message;
     isAIResponsePending: boolean;
+    showBlinkingCircle: boolean;
 }) => {
+    const circleRef = useRef<SVGSVGElement>(null);
+
     return (
         <div className="w-full bg-transparent self-start p-3">
             <Streamdown
@@ -47,8 +52,32 @@ const AIMessageBox = ({
                     mermaid,
                     math,
                 }}
+                className="inline stream"
+                // components={{
+                //     div: ({ children }) => (
+                //         <div>
+                //             {children}
+                //             <Circle
+                //                 ref={circleRef as any}
+                //                 className="fill-white size-3.5 animate-pulse circle inline"
+                //             />
+                //         </div>
+                //     ),
+                // }}
+
+                allowedTags={{
+                    circle: [],
+                }}
+                components={{
+                    circle: () => (
+                        <Circle
+                            ref={circleRef as any}
+                            className="fill-white size-3.5 animate-pulse circle inline"
+                        />
+                    ),
+                }}
             >
-                {msg.message}
+                {msg.message + (showBlinkingCircle ? " <circle/>" : "")}
             </Streamdown>
         </div>
     );
@@ -56,7 +85,7 @@ const AIMessageBox = ({
 
 const ErrorMessage = ({ error }: { error: string }) => {
     return (
-        <div className="px-3 text-red-500  font-semibold gap-1 text-sm">
+        <div className="px-3 text-red-500  font-semibold gap-1 text-sm mt-5">
             <p className="inline">{error}</p>{" "}
             <CircleX className="size-5 stroke-primary-color fill-red-500 inline" />
         </div>
@@ -68,18 +97,21 @@ const ChatContainer = ({
     setMessages,
     isAIResponsePending,
     error,
+    chatContainerRef,
 }: {
     messages: Message[];
     setMessages: Dispatch<SetStateAction<Message[]>>;
     isAIResponsePending: boolean;
     error: string;
+    chatContainerRef: RefObject<HTMLDivElement>;
 }) => {
     return (
         <div
             style={{
                 scrollbarColor: "var(--color-primary-color) transparent",
             }}
-            className="chat grow overflow-y-auto w-full p-5"
+            ref={chatContainerRef}
+            className="chat grow overflow-y-auto p-5 pb-50"
         >
             {messages.length ? (
                 <div className="flex flex-col text-sm gap-3">
@@ -94,6 +126,10 @@ const ChatContainer = ({
                                         msg={msg}
                                         isAIResponsePending={
                                             isAIResponsePending
+                                        }
+                                        showBlinkingCircle={
+                                            isAIResponsePending &&
+                                            i === messages.length - 1
                                         }
                                     />
                                 );
