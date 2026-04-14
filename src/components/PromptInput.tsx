@@ -1,9 +1,12 @@
-import { ArrowUp, Loader2, Plus, ScreenShare, X } from "lucide-react";
+import { ArrowUp, File, Loader2, Plus, ScreenShare, X } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useRef, useState } from "react";
 import ImagePreview from "./ImagePreview";
 import node_api from "../api/node-api";
 import { Message } from "../types";
+
+const FILE_SIZE_MULTIPLIER = 1024 * 1024; // Convert bytes to megabytes
+const MAX_FILE_SIZE = 5 * FILE_SIZE_MULTIPLIER; // 5MB
 
 export async function capture() {
     const html = document.querySelector("html")!;
@@ -28,6 +31,8 @@ const PromptInput = ({
     const [imgs, setImgs] = useState<string[]>([]);
     const [previewedImg, setPreviewedImg] = useState("");
     const [prompt, setPrompt] = useState("");
+    const [files, setFiles] = useState<File[]>([]);
+    // const filesInputRef = useRef<HTMLInputElement>(null);
 
     const handleScreenShot = async () => {
         const result = await capture();
@@ -42,6 +47,16 @@ const PromptInput = ({
         setImgs((imgs) => (imgs.length ? [...imgs, img] : [img]));
     };
 
+    const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        setFiles((files) => (files.length ? [...files, file] : [file]));
+
+        // Reset the input value to allow uploading the same file again if needed
+        e.target.value = "";
+    };
+
     const deleteImg = (index: number) => {
         setImgs((imgs) => imgs.filter((_, i) => i !== index));
     };
@@ -53,6 +68,7 @@ const PromptInput = ({
 
     const onSubmit = async (e: React.SubmitEvent) => {
         e.preventDefault();
+        unFoldWindow();
 
         const userMessage: Message = {
             message: prompt,
@@ -69,39 +85,110 @@ const PromptInput = ({
         // setImgs([]);
     };
 
+    const getCurrentAttachmentsSize = () => {
+        const imagesSize = imgs.reduce((total, img) => {
+            // Calculate the size of the base64 string in bytes
+            return total + Math.ceil((img.length * 3) / 4); // Base64 encoding increases size by ~33%
+        }, 0);
+
+        const filesSize = files.reduce((total, file) => {
+            return total + file.size;
+        }, 0);
+
+        // const sizeMB = (imagesSize + filesSize) / FILE_SIZE_MULTIPLIER; // Convert to MB
+        const originalSize = imagesSize + filesSize;
+        let size = originalSize; // Size in bytes
+        let unit = "b";
+
+        if (size >= 1024 * 1024) {
+            unit = "mb";
+            size = size / FILE_SIZE_MULTIPLIER; // Convert to MB
+        } else if (size >= 1024) {
+            unit = "kb";
+            size = size / 1024; // Convert to KB
+        }
+
+        // if (size >= 1) {
+        //     unit = "mb";
+
+        // } else if (size >= 0.001) {
+        //     unit = "kb";
+
+        // }
+
+        return {
+            size: size.toFixed(2),
+            originalSize,
+            unit,
+        };
+    };
+
+    const attachmentsSize = getCurrentAttachmentsSize();
+
     return (
         <div className="bottom-0 w-full promptInput border-t border-third-color/30">
             <form
                 onSubmit={onSubmit}
                 className="px-3 py-3.5 w-full flex flex-col gap-3"
             >
-                {/* Images */}
-                {imgs.length ? (
-                    <div className="flex gap-3 flex-wrap">
-                        {imgs.map((img, i) => (
-                            <div key={i} className="relative">
-                                <img
-                                    onClick={() => previewImg(img)}
-                                    src={img}
-                                    alt="My image"
-                                    className="size-15 object-cover cursor-pointer 
-                  rounded-lg opacity-[0.8] border-2"
-                                />
-                                <button
-                                    type="button"
-                                    onClick={() => deleteImg(i)}
-                                    className="absolute size-5 bg-red-500 flex
+                <p className="text-right text-sm text-third-color">
+                    {attachmentsSize.size + attachmentsSize.unit} /
+                    {MAX_FILE_SIZE / FILE_SIZE_MULTIPLIER}mb
+                </p>
+                {/* Attachments */}
+                <>
+                    {/* Images */}
+                    {imgs.length ? (
+                        <div className="flex gap-3 flex-wrap">
+                            {imgs.map((img, i) => (
+                                <div key={i} className="relative">
+                                    <img
+                                        onClick={() => previewImg(img)}
+                                        src={img}
+                                        alt="My image"
+                                        className="size-15 object-cover cursor-pointer 
+                  rounded-lg opacity-[0.8] border-2 border-third-color hover:opacity-100 transition-opacity"
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => deleteImg(i)}
+                                        className="absolute size-5 bg-fourth-color flex
                  items-center justify-center rounded-full top-0 right-0
                   translate-x-1/2 -translate-y-1/2"
+                                    >
+                                        <X className="size-4" />
+                                    </button>
+                                </div>
+                            ))}
+                        </div>
+                    ) : (
+                        ""
+                    )}
+                    {/* Files */}
+                    {files.length ? (
+                        <div className="flex flex-wrap gap-2">
+                            {files.map((file, i) => (
+                                <div
+                                    key={i}
+                                    className="flex  items-center gap-2 bg-third-color/30 rounded-lg p-2"
                                 >
-                                    <X className="size-4" />
-                                </button>
-                            </div>
-                        ))}
-                    </div>
-                ) : (
-                    ""
-                )}
+                                    <File className="size-5 stroke-third-color" />
+                                    <span className="text-sm">{file.name}</span>
+                                    <button
+                                        type="button"
+                                        //   onClick={() => deleteImg(i)}
+                                        className="size-5 bg-fourth-color flex
+                 items-center justify-center rounded-full"
+                                    >
+                                        <X className="size-4" />
+                                    </button>
+                                </div>
+                            )) || ""}
+                        </div>
+                    ) : (
+                        ""
+                    )}
+                </>
                 {/* In */}
                 <div className="w-full flex items-end gap-3 justify-center">
                     <button
@@ -113,9 +200,15 @@ const PromptInput = ({
                     </button>
                     <button
                         type="button"
-                        className="size-10 min-w-10 items-center flex justify-center rounded-full bg-third-color/10"
+                        className="size-10 min-w-10 items-center flex justify-center 
+                        rounded-full bg-third-color/10 overflow-hidden relative"
                     >
                         <Plus className="size-5" />
+                        <input
+                            onChange={handleFileUpload}
+                            type="file"
+                            className="absolute inset-0 opacity-0 cursor-pointer"
+                        />
                     </button>
                     {/* Input */}
                     {/* max-w-md */}

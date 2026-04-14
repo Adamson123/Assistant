@@ -11,6 +11,7 @@ import {
     CircleX,
     Copy,
     Edit2,
+    File,
     RefreshCcw,
     Volume2,
 } from "lucide-react";
@@ -18,8 +19,14 @@ import {
 const UserMessageBox = ({ msg }: { msg: Message }) => {
     return (
         <div className="max-w-100 self-end flex flex-col gap-1 group">
-            <div className="bg-third-color/30  p-3 rounded-tl-xl rounded-bl-xl rounded-tr-xl flex flex-col">
-                <p>{msg.message}</p>
+            <div className="bg-third-color/30  p-2 rounded-tl-xl rounded-bl-xl rounded-tr-xl flex flex-col gap-2">
+                {/* Message */}
+                {msg.message && (
+                    <p className="pb-2 border-b border-third-color/30">
+                        {msg.message}
+                    </p>
+                )}
+                {/* Images */}
                 {msg.images?.length ? (
                     <div className="flex flex-wrap gap-1.5">
                         {msg.images.map((img, i) => (
@@ -27,9 +34,27 @@ const UserMessageBox = ({ msg }: { msg: Message }) => {
                                 key={i}
                                 src={img}
                                 alt="User sent image"
-                                className="size-7 object-cover rounded-lg mt-2not-last:"
+                                className="size-10 object-cover rounded-lg mt-2not-last:"
                             />
                         ))}
+                    </div>
+                ) : (
+                    ""
+                )}
+                {/* Files */}
+                {msg.files?.length ? (
+                    <div className="flex flex-wrap gap-2">
+                        {["game.exe", "document.pdf", "game.gd"].map(
+                            (file, i) => (
+                                <div
+                                    key={i}
+                                    className="flex  items-center gap-2 bg-third-color/30 rounded-lg p-2"
+                                >
+                                    <File className="size-4 stroke-third-color" />
+                                    <span className="text-xs">{file}</span>
+                                </div>
+                            ),
+                        ) || ""}
                     </div>
                 ) : (
                     ""
@@ -99,7 +124,7 @@ const AIMessageBox = ({
 
 const ErrorMessage = ({ error }: { error: string }) => {
     return (
-        <div className="px-3 text-red-500  font-semibold gap-1 text-sm mt-5">
+        <div className="px-3 text-red-500  font-semibold gap-1 text-sm">
             <p className="inline">{error}</p>{" "}
             <CircleX className="size-5 stroke-primary-color fill-red-500 inline" />
         </div>
@@ -108,7 +133,6 @@ const ErrorMessage = ({ error }: { error: string }) => {
 
 const ChatContainer = ({
     messages,
-
     isAIResponsePending,
     error,
     chatContainerRef,
@@ -128,7 +152,7 @@ const ChatContainer = ({
             className="chat grow overflow-y-auto p-5 pb-50"
         >
             {messages.length ? (
-                <div className="flex flex-col text-sm gap-3">
+                <div className="flex flex-col text-sm">
                     {messages.map((msg, i) => {
                         switch (msg.type) {
                             case "user":

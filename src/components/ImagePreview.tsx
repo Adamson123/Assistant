@@ -38,7 +38,7 @@ const ImagePreview = ({
         a.href = previewedImg;
         a.download = "screenshot_" + crypto.randomUUID();
         a.click();
-        alert(`image saved as ${a.download} in Downloads`);
+        alert(`image saved to ${a.download} in Downloads`);
     };
 
     return (

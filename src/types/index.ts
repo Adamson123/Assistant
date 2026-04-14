@@ -10,6 +10,7 @@ export interface Message {
     message: string;
     type: "user" | "model";
     images?: string[];
+    files?: File[];
 }
 
 export interface GeminiContent {
