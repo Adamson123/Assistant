@@ -44,17 +44,15 @@ const UserMessageBox = ({ msg }: { msg: Message }) => {
                 {/* Files */}
                 {msg.files?.length ? (
                     <div className="flex flex-wrap gap-2">
-                        {["game.exe", "document.pdf", "game.gd"].map(
-                            (file, i) => (
-                                <div
-                                    key={i}
-                                    className="flex  items-center gap-2 bg-third-color/30 rounded-lg p-2"
-                                >
-                                    <File className="size-4 stroke-third-color" />
-                                    <span className="text-xs">{file}</span>
-                                </div>
-                            ),
-                        ) || ""}
+                        {msg.files.map((file, i) => (
+                            <div
+                                key={i}
+                                className="flex  items-center gap-2 bg-third-color/30 rounded-lg p-2"
+                            >
+                                <File className="size-4 stroke-third-color" />
+                                <span className="text-xs">{file.name}</span>
+                            </div>
+                        )) || ""}
                     </div>
                 ) : (
                     ""

@@ -128,7 +128,11 @@ export default function useHandleAiQuery(
         return history;
     };
 
-    const sendAiRequest = async (prompt: string, images: string[]) => {
+    const sendAiRequest = async (
+        prompt: string,
+        images: string[],
+        files: File[],
+    ) => {
         setError("");
         setIsAIResponsePending(true);
 
@@ -137,6 +141,7 @@ export default function useHandleAiQuery(
         const request = {
             prompt,
             screenshots: images,
+            files,
             history,
         };
 

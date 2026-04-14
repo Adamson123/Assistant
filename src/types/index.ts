@@ -21,6 +21,7 @@ export interface GeminiContent {
 export interface UserInput {
     prompt: string;
     screenshots: string[];
+    files: File[];
     history: GeminiContent[];
 }
 

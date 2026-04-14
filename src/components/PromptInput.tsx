@@ -1,6 +1,6 @@
 import { ArrowUp, File, Loader2, Plus, ScreenShare, X } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
-import React, { Dispatch, SetStateAction, useRef, useState } from "react";
+import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
 import node_api from "../api/node-api";
 import { Message } from "../types";
@@ -26,7 +26,7 @@ const PromptInput = ({
     // messages: Message[];
     setMessages: Dispatch<SetStateAction<Message[]>>;
     isAIResponsePending: boolean;
-    sendAiRequest: (prompt: string, images: string[]) => void;
+    sendAiRequest: (prompt: string, images: string[], files: File[]) => void;
 }) => {
     const [imgs, setImgs] = useState<string[]>([]);
     const [previewedImg, setPreviewedImg] = useState("");
@@ -73,6 +73,7 @@ const PromptInput = ({
         const userMessage: Message = {
             message: prompt,
             images: imgs,
+            files: files,
             type: "user",
         };
 
@@ -80,7 +81,7 @@ const PromptInput = ({
             msgs.length ? [...msgs, userMessage] : [userMessage],
         );
 
-        sendAiRequest(prompt, imgs);
+        sendAiRequest(prompt, imgs, files);
         // setPrompt("");
         // setImgs([]);
     };

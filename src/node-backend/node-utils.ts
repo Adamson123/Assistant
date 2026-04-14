@@ -44,7 +44,7 @@ export const parseDataUrl = (dataUrl: string) => {
     };
 };
 
-export const structureForGemini = (request: UserInput) => {
+export const structureScreenshotsForGemini = (request: UserInput) => {
     const screenshots = Array.isArray(request.screenshots)
         ? request.screenshots
         : [];
@@ -63,4 +63,36 @@ export const structureForGemini = (request: UserInput) => {
     const parts = [{ text: request.prompt }, ...imageParts];
 
     return parts;
+};
+
+export const structureFilesForGemini = async (request: UserInput) => {
+    const files = Array.isArray(request.files) ? request.files : [];
+
+    const fileParts: {
+        inlineData: {
+            mimeType: string;
+            data: string;
+        };
+    }[] = [];
+
+    //FIXME: file turned {} after being sent from frontend, need to investigate why and how to fix it. For now, I'm just logging the file object to see what properties it has and if I can still extract the necessary data from it.
+    for (const file of files) {
+        console.log("File: ", JSON.stringify(file));
+
+        try {
+            const arrayBuffer = await file.arrayBuffer();
+            const buffer = Buffer.from(arrayBuffer);
+            const base64Data = buffer.toString("base64");
+            fileParts.push({
+                inlineData: {
+                    mimeType: file.type || "application/octet-stream",
+                    data: base64Data,
+                },
+            });
+        } catch (error) {
+            console.error(`Error processing file ${file.name}:`, error);
+        }
+    }
+
+    return fileParts;
 };

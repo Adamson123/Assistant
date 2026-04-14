@@ -1,6 +1,10 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { NodeBackendAPI, UserInput } from "../types/index.ts";
-import { getEnvInRoot, structureForGemini } from "./node-utils.ts";
+import {
+    getEnvInRoot,
+    structureFilesForGemini,
+    structureScreenshotsForGemini,
+} from "./node-utils.ts";
 import { extractError } from "../utils/index.ts";
 
 const env = await getEnvInRoot();
@@ -45,7 +49,7 @@ const ai_api: Pick<
     analyzeWithGemini: async (request: UserInput) => {
         try {
             //const result = await genAI.generateContent(request);
-            const parts = structureForGemini(request);
+            const parts = structureScreenshotsForGemini(request);
 
             const result = await ai.models.generateContent({
                 model: CURRENT_MODEL,
@@ -68,7 +72,11 @@ const ai_api: Pick<
             //const result = await genAI.generateContent(request);
             console.log("Recieved request for analytics");
 
-            const parts = structureForGemini(request);
+            const screenshotParts = structureScreenshotsForGemini(request);
+            const fileParts = await structureFilesForGemini(request);
+
+            console.log("fileParts", JSON.stringify(fileParts));
+
             const result = await ai.models.generateContentStream({
                 model: CURRENT_MODEL,
                 contents: [
@@ -97,7 +105,8 @@ const ai_api: Pick<
                             },
                         ],
                     },
-                    { role: "user", parts },
+                    { role: "user", parts: screenshotParts },
+                    { role: "user", parts: fileParts },
                 ],
             });
 
