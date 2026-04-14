@@ -1,6 +1,7 @@
-import { RefObject, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import node_api from "../api/node-api";
 import type { GeminiContent, Message, UserInput } from "../types";
+import { extractError } from "../utils";
 
 const removeResponseTitleFromText = (text: string) => {
     return text.replace(/\?\?.*?\?\?/, "").trim();
@@ -37,6 +38,7 @@ const geminiRequestStream = async (
                 ? [...msgs, { message: accumulatedText, type: "model" }]
                 : [{ message: accumulatedText, type: "model" }],
         );
+
         const callback = (text: string) => {
             accumulatedText += text;
             accumulatedText = removeResponseTitleFromText(accumulatedText);
@@ -51,7 +53,6 @@ const geminiRequestStream = async (
                 return [...msgs, { message: accumulatedText, type: "model" }];
             });
             scrollToBottom();
-            //   console.log(text);
         };
 
         console.log("Sent request in client");
@@ -67,10 +68,7 @@ const geminiRequestStream = async (
         return {
             type: "gemini",
             text: "",
-            error:
-                JSON.parse((error as Error).message)?.error?.message ||
-                (error as Error).message ||
-                "Something went wrong",
+            error: extractError(error),
         };
     }
 };

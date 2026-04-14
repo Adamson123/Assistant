@@ -31,8 +31,8 @@ const PromptInput = ({
 
     const handleScreenShot = async () => {
         const result = await capture();
-        //  const img = await reduceImgSize(result);
         const img = await node_api.compressWebPDataUrl(result);
+
         console.log({
             original: result.length,
             compressed: img.length,
@@ -43,9 +43,7 @@ const PromptInput = ({
     };
 
     const deleteImg = (index: number) => {
-        console.log({ index });
         setImgs((imgs) => imgs.filter((_, i) => i !== index));
-        // if (fold) foldWindow();
     };
 
     const previewImg = (img: string) => {
@@ -122,17 +120,26 @@ const PromptInput = ({
                     {/* Input */}
                     {/* max-w-md */}
                     <div
-                        onInput={(e) => setPrompt(e.currentTarget.textContent)}
-                        data-placeholder="Enter Prompt"
+                        onInput={(e) => {
+                            setPrompt(e.currentTarget.textContent);
+                        }}
+                        data-placeholder={"Enter Prompt"}
+                        data-empty={prompt}
                         contentEditable="true"
                         className="w-full outline-none overflow-hidden max-h-30 text-sm bg-third-color/10 rounded-3xl py-2.5 px-3 editable"
                     ></div>
 
                     {/* Send */}
                     <button
-                        disabled={isAIResponsePending}
+                        disabled={
+                            isAIResponsePending || (!prompt && !imgs.length)
+                        }
                         type="submit"
-                        className="size-10 min-w-10 items-center flex justify-center rounded-full bg-white"
+                        className={`size-10 min-w-10 items-center flex justify-center rounded-full bg-white ${
+                            !prompt &&
+                            !imgs.length &&
+                            "cursor-not-allowed! opacity-50"
+                        }`}
                     >
                         {isAIResponsePending ? (
                             <Loader2 className="animate-spin stroke-primary-color size-5 stroke-3" />

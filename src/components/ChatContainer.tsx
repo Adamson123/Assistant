@@ -1,4 +1,4 @@
-import { Dispatch, RefObject, SetStateAction, useEffect, useRef } from "react";
+import { Dispatch, RefObject, SetStateAction, useRef } from "react";
 import { Streamdown } from "streamdown";
 import { code } from "@streamdown/code";
 import { mermaid } from "@streamdown/mermaid";
@@ -108,7 +108,7 @@ const ErrorMessage = ({ error }: { error: string }) => {
 
 const ChatContainer = ({
     messages,
-    setMessages,
+
     isAIResponsePending,
     error,
     chatContainerRef,

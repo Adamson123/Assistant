@@ -44,8 +44,16 @@ button {
     cursor: pointer;
 }
 
-.editable:empty::before {
+.editable {
+    position: relative;
+    z-index: 2;
+}
+
+.editable[data-empty=""]::before {
     content: attr(data-placeholder);
     @apply text-third-color;
-    pointer-events: none;
+    pointer-events: absolute;
+    position: fixed;
+    z-index: -1;
+    /* bottom: 1.5rem; */
 }

@@ -1,6 +1,7 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
 import type { NodeBackendAPI, UserInput } from "../types/index.ts";
 import { getEnvInRoot, structureForGemini } from "./node-utils.ts";
+import { extractError } from "../utils/index.ts";
 
 const env = await getEnvInRoot();
 //const genAI = new GoogleGenerativeAI(env.VITE_GEMINI_API_KEY);
@@ -37,19 +38,6 @@ const logTokensLeft = (response: GenerateContentResponse) => {
     console.log(`Tokens used: ${tokensUsed}, Tokens left: ${tokensLeft}`);
 };
 
-const extractError = (err: any) => {
-    try {
-        const raw = err?.message;
-
-        // Try parsing directly
-        const parsed = JSON.parse(raw);
-
-        return parsed?.error?.message || raw;
-    } catch {
-        return err?.message || "Something went wrong";
-    }
-};
-
 const ai_api: Pick<
     NodeBackendAPI,
     "analyzeWithGemini" | "analyzeWithGeminiStream"
@@ -81,61 +69,6 @@ const ai_api: Pick<
             console.log("Recieved request for analytics");
 
             const parts = structureForGemini(request);
-
-            // logDebug("History:", JSON.stringify(request.history ?? []));
-
-            //             const instructionBlock = {
-            //                 role: "user",
-            //                 parts: [
-            //                     {
-            //                         text: `
-            // YOU ARE A STRICT OUTPUT ENGINE.
-
-            // ABSOLUTE RULES:
-
-            // 1. DO NOT GREET UNDER ANY CONDITION
-            //    - No "Hello"
-            //    - No "Hi"
-            //    - No "I am ready"
-
-            // 2. OUTPUT FORMAT RULES:
-
-            // IF chat history is EMPTY:
-            // - FIRST LINE MUST BE:
-            // ??Chat Title??
-            // - SECOND LINE: answer the question
-
-            // IF chat history EXISTS:
-            // - DO NOT output title
-            // - Just answer the question
-
-            // 3. NO EXTRA TEXT ALLOWED:
-            // - No explanations
-            // - No reasoning
-            // - No filler words
-            // - No politeness
-
-            // 4. OUTPUT MUST START IMMEDIATELY
-            // `,
-            //                     },
-            //                 ],
-            //             };
-
-            //             const result = await ai.models.generateContentStream({
-            //                 model: CURRENT_MODEL,
-            //                 contents: [
-            //                     instructionBlock,
-
-            //                     // 🚫 untouched history (as you wanted)
-            //                     ...request.history,
-
-            //                     // 🚫 untouched parts (as you demanded)
-            //                     {
-            //                         role: "user",
-            //                         parts,
-            //                     },
-            //                 ],
-            //             });
             const result = await ai.models.generateContentStream({
                 model: CURRENT_MODEL,
                 contents: [
