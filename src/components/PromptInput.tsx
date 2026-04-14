@@ -3,7 +3,7 @@ import { invoke } from "@tauri-apps/api/core";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
 import node_api from "../api/node-api";
-import { Message } from "../types";
+import { Message, SerializableFile } from "../types";
 
 const FILE_SIZE_MULTIPLIER = 1024 * 1024; // Convert bytes to megabytes
 const MAX_FILE_SIZE = 5 * FILE_SIZE_MULTIPLIER; // 5MB
@@ -26,7 +26,11 @@ const PromptInput = ({
     // messages: Message[];
     setMessages: Dispatch<SetStateAction<Message[]>>;
     isAIResponsePending: boolean;
-    sendAiRequest: (prompt: string, images: string[], files: File[]) => void;
+    sendAiRequest: (
+        prompt: string,
+        images: string[],
+        files: SerializableFile[],
+    ) => void;
 }) => {
     const [imgs, setImgs] = useState<string[]>([]);
     const [previewedImg, setPreviewedImg] = useState("");
@@ -61,6 +65,10 @@ const PromptInput = ({
         setImgs((imgs) => imgs.filter((_, i) => i !== index));
     };
 
+    const deleteFile = (index: number) => {
+        setFiles((files) => files.filter((_, i) => i !== index));
+    };
+
     const previewImg = (img: string) => {
         unFoldWindow();
         setPreviewedImg(img);
@@ -81,7 +89,27 @@ const PromptInput = ({
             msgs.length ? [...msgs, userMessage] : [userMessage],
         );
 
-        sendAiRequest(prompt, imgs, files);
+        //ERROR: The File object is being serialized to an empty object {} when sent from the frontend to the backend. This is because File objects cannot be directly serialized to JSON, which is likely how the data is being sent. To fix this, we need to convert the File objects into a format that can be serialized (like base64 strings) before sending them, and then reconstruct the File objects on the backend if necessary.
+
+        const serializableFiles = await Promise.all(
+            files.map(async (file) => {
+                const arrayBuffer = await file.arrayBuffer();
+                const base64Data = btoa(
+                    new Uint8Array(arrayBuffer).reduce(
+                        (data, byte) => data + String.fromCharCode(byte),
+                        "",
+                    ),
+                );
+                return {
+                    name: file.name,
+                    type: file.type,
+                    size: file.size,
+                    data: base64Data,
+                };
+            }),
+        );
+
+        sendAiRequest(prompt, imgs, serializableFiles);
         // setPrompt("");
         // setImgs([]);
     };
@@ -177,7 +205,7 @@ const PromptInput = ({
                                     <span className="text-sm">{file.name}</span>
                                     <button
                                         type="button"
-                                        //   onClick={() => deleteImg(i)}
+                                        onClick={() => deleteFile(i)}
                                         className="size-5 bg-fourth-color flex
                  items-center justify-center rounded-full"
                                     >

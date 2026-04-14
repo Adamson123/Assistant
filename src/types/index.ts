@@ -18,10 +18,17 @@ export interface GeminiContent {
     parts: [{ text: string }];
 }
 
+export interface SerializableFile {
+    name: string;
+    type: string;
+    size: number;
+    data: string; // base64 encoded file data
+}
+
 export interface UserInput {
     prompt: string;
     screenshots: string[];
-    files: File[];
+    files: SerializableFile[];
     history: GeminiContent[];
 }
 

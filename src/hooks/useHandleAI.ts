@@ -1,6 +1,11 @@
 import { useEffect, useState } from "react";
 import node_api from "../api/node-api";
-import type { GeminiContent, Message, UserInput } from "../types";
+import type {
+    GeminiContent,
+    Message,
+    SerializableFile,
+    UserInput,
+} from "../types";
 import { extractError } from "../utils";
 
 const removeResponseTitleFromText = (text: string) => {
@@ -131,7 +136,7 @@ export default function useHandleAiQuery(
     const sendAiRequest = async (
         prompt: string,
         images: string[],
-        files: File[],
+        files: SerializableFile[],
     ) => {
         setError("");
         setIsAIResponsePending(true);

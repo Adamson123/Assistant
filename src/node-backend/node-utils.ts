@@ -76,17 +76,25 @@ export const structureFilesForGemini = async (request: UserInput) => {
     }[] = [];
 
     //FIXME: file turned {} after being sent from frontend, need to investigate why and how to fix it. For now, I'm just logging the file object to see what properties it has and if I can still extract the necessary data from it.
+
+    //ERROR: The File object is being serialized to an empty object {} when sent from the frontend to the backend. This is because File objects cannot be directly serialized to JSON, which is likely how the data is being sent. To fix this, we need to convert the File objects into a format that can be serialized (like base64 strings) before sending them, and then reconstruct the File objects on the backend if necessary.
+    const supportedMimeTypes = [
+        "image/png",
+        "image/jpeg",
+        "image/webp",
+        "text/plain",
+        "application/pdf",
+    ];
     for (const file of files) {
-        console.log("File: ", JSON.stringify(file));
+        // console.log("File: ", JSON.stringify(file));
 
         try {
-            const arrayBuffer = await file.arrayBuffer();
-            const buffer = Buffer.from(arrayBuffer);
-            const base64Data = buffer.toString("base64");
             fileParts.push({
                 inlineData: {
-                    mimeType: file.type || "application/octet-stream",
-                    data: base64Data,
+                    mimeType: supportedMimeTypes.includes(file.type)
+                        ? file.type
+                        : "text/plain",
+                    data: file.data || "",
                 },
             });
         } catch (error) {

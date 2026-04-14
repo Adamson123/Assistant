@@ -33,7 +33,7 @@ const MODELS = {
     Gemini3_1FlashLitePreview: "gemini-3.1-flash-lite-preview",
     WRONG_MODEL: "wrong-model",
 };
-const CURRENT_MODEL = MODELS.Gemini2_5FlashLite;
+const CURRENT_MODEL = MODELS.Gemini2_5Flash;
 
 const logTokensLeft = (response: GenerateContentResponse) => {
     if (!response) return;
