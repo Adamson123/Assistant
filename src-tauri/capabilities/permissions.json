@@ -5,6 +5,16 @@
     "permissions": [
         "fs:allow-desktop-write-recursive",
         "fs:allow-desktop-read-recursive",
+        "fs:allow-home-read-recursive",
+        "fs:allow-home-write-recursive",
+        {
+            "identifier": "fs:scope",
+            "allow": [{ "path": "/**" }, { "path": "/" }]
+        },
+        "core:webview:allow-internal-toggle-devtools",
+        "core:webview:default",
+        "core:path:allow-resolve-directory",
+        "core:path:default",
         "js:default",
         "core:window:allow-minimize",
         "core:window:allow-close",

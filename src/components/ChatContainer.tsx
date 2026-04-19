@@ -5,7 +5,7 @@ import { mermaid } from "@streamdown/mermaid";
 import { math } from "@streamdown/math";
 import "katex/dist/katex.min.css";
 import "streamdown/styles.css";
-import { Message } from "../types";
+import { Message } from "../../types";
 import {
     Circle,
     CircleX,
@@ -34,7 +34,7 @@ const UserMessageBox = ({ msg }: { msg: Message }) => {
                                 key={i}
                                 src={img}
                                 alt="User sent image"
-                                className="size-10 object-cover rounded-lg mt-2not-last:"
+                                className="size-10 object-cover rounded-lg"
                             />
                         ))}
                     </div>
@@ -59,13 +59,13 @@ const UserMessageBox = ({ msg }: { msg: Message }) => {
                 )}
             </div>
             <div className="flex justify-end opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded-md">
                     <Copy className="size-5 stroke-third-color" />
                 </button>
-                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded-md">
                     <RefreshCcw className="size-5 stroke-third-color" />
                 </button>
-                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded-md">
                     <Edit2 className="size-5 stroke-third-color" />
                 </button>
             </div>
@@ -109,10 +109,10 @@ const AIMessageBox = ({
                 {msg.message + (showBlinkingCircle ? " <circle/>" : "")}
             </Streamdown>
             <div className="flex items-center opacity-0 group-hover:opacity-100 transition-opacity duration-300">
-                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded-md">
                     <Copy className="size-5 stroke-third-color" />
                 </button>
-                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded">
+                <button className="cursor-pointer size-9 hover:bg-secondary-color flex items-center justify-center rounded-md">
                     <Volume2 className="size-5 stroke-third-color" />
                 </button>
             </div>

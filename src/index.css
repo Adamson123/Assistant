@@ -57,3 +57,7 @@ button {
     z-index: -1;
     /* bottom: 1.5rem; */
 }
+
+.hide-scrollbar-arrows::-webkit-scrollbar-button {
+    display: none;
+}

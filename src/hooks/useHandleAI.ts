@@ -5,7 +5,7 @@ import type {
     Message,
     SerializableFile,
     UserInput,
-} from "../types";
+} from "../../types";
 import { extractError } from "../utils";
 
 const removeResponseTitleFromText = (text: string) => {

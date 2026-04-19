@@ -39,6 +39,6 @@
             "icons/icon.ico"
         ],
         "externalBin": [],
-        "resources": ["../src/node-backend/**/*"]
+        "resources": ["../node-backend/**/*"]
     }
 }

@@ -7,7 +7,7 @@ import {
     onStderr,
     //  onStdout,
 } from "tauri-plugin-js-api";
-import type { NodeBackendAPI } from "../types";
+import type { NodeBackendAPI } from "../../types";
 //import { sleep } from "../utils";
 
 let allProcessesKilled = false;
@@ -49,7 +49,7 @@ export async function createProcess(
     const nodeProcessRunning = await IsProcessRunning(processName);
 
     if (nodeProcessRunning) {
-        console.log("Getting running process...");
+        console.log("Getting active process...");
         //await kill(WORKER_NAME);
         const { api } = await createChannel<
             Record<string, never>,
@@ -74,6 +74,7 @@ export async function createProcess(
             Record<string, never>,
             NodeBackendAPI
         >(processName);
+        console.log("Process created");
 
         return api;
     } catch (error) {

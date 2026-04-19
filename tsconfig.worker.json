@@ -1,0 +1,15 @@
+{
+    "compilerOptions": {
+        "target": "ES2020",
+        "module": "CommonJS",
+        "moduleResolution": "node",
+        "esModuleInterop": true,
+        "allowSyntheticDefaultImports": true,
+        "skipLibCheck": true,
+        "strict": false,
+        "outDir": "./node-backend-comp",
+        "rootDir": "./node-backend"
+    },
+    "include": ["node-backend/**/*.ts"],
+    "exclude": ["node_modules", "src/frontend"]
+}

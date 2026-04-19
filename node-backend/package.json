@@ -1,0 +1,15 @@
+{
+    "name": "node-backend",
+    "version": "1.0.0",
+    "type": "module",
+    "scripts": {
+        "build": "tsc --watch"
+    },
+    "dependencies": {
+        "@google/genai": "^1.49.0",
+        "dotenv": "^17.4.2",
+        "envfile": "^7.1.0",
+        "kkrpc": "^0.6.7",
+        "sharp": "^0.34.5"
+    }
+}

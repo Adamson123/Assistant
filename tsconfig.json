@@ -19,7 +19,8 @@
         "noUnusedLocals": true,
         "noUnusedParameters": true,
         "noFallthroughCasesInSwitch": true
+        // "noEmitOnError": false
     },
-    "include": ["src", "src/node-backend"],
+    "include": ["src", "node-backend", "types", "tsconfig.worker.json"],
     "references": [{ "path": "./tsconfig.node.json" }]
 }

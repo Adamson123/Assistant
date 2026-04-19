@@ -1,18 +1,22 @@
 import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
-import type { NodeBackendAPI, UserInput } from "../types/index.ts";
+//@ts-expect-error
+import type { Env, NodeBackendAPI, UserInput } from "../../types/index";
 import {
-    getEnvInRoot,
+    // getEnvInRoot,
     structureFilesForGemini,
     structureScreenshotsForGemini,
-} from "./node-utils.ts";
-import { extractError } from "../utils/index.ts";
+} from "./node-utils.js";
+import { extractError } from "./node-utils.js";
 
-const env = await getEnvInRoot();
+//const env = await getEnvInRoot();
+let env: Env = process.env as unknown as Env;
+//env = env.VITE_GEMINI_API_KEY ? env : await getEnvInRoot(); // Try process.env first, then fallback to reading .env file in project root. This allows us to work around issues with environment variables not being passed correctly in the worker process.
+
 //const genAI = new GoogleGenerativeAI(env.VITE_GEMINI_API_KEY);
 //const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
 const ai = new GoogleGenAI({ apiKey: env.VITE_GEMINI_API_KEY });
 
-const MODEL_LIMITS: { [modelName: string]: number } = {
+const GEMINI_MODEL_LIMITS: { [modelName: string]: number } = {
     // Current Stable Free Tier Models
     "gemini-2.5-flash": 1048576, // ~1M
     "gemini-2.5-flash-lite": 1048576, // ~1M
@@ -25,7 +29,7 @@ const MODEL_LIMITS: { [modelName: string]: number } = {
     "wrong-model": 0, // For testing error handling
 };
 
-const MODELS = {
+const GEMINI_MODELS = {
     Gemini2_5Flash: "gemini-2.5-flash",
     Gemini2_5FlashLite: "gemini-2.5-flash-lite",
     Gemini2_5Pro: "gemini-2.5-pro",
@@ -33,12 +37,12 @@ const MODELS = {
     Gemini3_1FlashLitePreview: "gemini-3.1-flash-lite-preview",
     WRONG_MODEL: "wrong-model",
 };
-const CURRENT_MODEL = MODELS.Gemini2_5Flash;
+const CURRENT_MODEL = GEMINI_MODELS.Gemini2_5Flash;
 
 const logTokensLeft = (response: GenerateContentResponse) => {
     if (!response) return;
     const tokensUsed = response.usageMetadata?.totalTokenCount || 0;
-    const tokensLeft = MODEL_LIMITS[CURRENT_MODEL] - tokensUsed;
+    const tokensLeft = GEMINI_MODEL_LIMITS[CURRENT_MODEL] - tokensUsed;
     console.log(`Tokens used: ${tokensUsed}, Tokens left: ${tokensLeft}`);
 };
 
@@ -71,6 +75,7 @@ const ai_api: Pick<
         try {
             //const result = await genAI.generateContent(request);
             console.log("Recieved request for analytics");
+            console.log("API KEY: " + env.VITE_GEMINI_API_KEY);
 
             const screenshotParts = structureScreenshotsForGemini(request);
             const fileParts = await structureFilesForGemini(request);

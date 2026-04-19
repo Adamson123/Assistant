@@ -1,20 +1,21 @@
-import type { Env, UserInput } from "./../types/index.ts";
-import fs from "fs/promises";
+import type { Env, UserInput } from "../../types/index.js";
+import fs from "fs";
 import path from "path";
-//@ts-expect-error
 import { parse } from "envfile";
 
-export const srcTauri = process.cwd();
-export const projectRoot = path.dirname(srcTauri);
+//export const srcTauri = process.cwd();
+//export const projectRoot = path.dirname(srcTauri);
 
 export const getEnvInRoot = async (): Promise<Env> => {
     try {
+        const projectRoot = process.env.PROJECT_ROOT as string;
         const envDir = path.join(projectRoot, ".env");
-        const content = await fs.readFile(envDir);
-        const parsed = parse(content);
+        const content = fs.readFileSync(envDir, "utf8");
+        const parsed = parse(content) as unknown as Env;
+        logDebug("Parsed env variables", parsed);
         return parsed;
     } catch (error) {
-        console.log("Error passing env");
+        console.log("Error passing env", error);
         return {
             VITE_GEMINI_API_KEY: "",
             VITE_GEMINI_API_KEY_2: "",
@@ -24,6 +25,8 @@ export const getEnvInRoot = async (): Promise<Env> => {
         };
     }
 };
+
+//const env: Env = process.env as unknown as Env;
 
 export const logDebug = (message: string, details?: unknown) => {
     if (details === undefined) {
@@ -103,4 +106,17 @@ export const structureFilesForGemini = async (request: UserInput) => {
     }
 
     return fileParts;
+};
+
+export const extractError = (err: any) => {
+    try {
+        const raw = err?.message;
+
+        // Try parsing directly
+        const parsed = JSON.parse(raw);
+
+        return parsed?.error?.message || raw;
+    } catch {
+        return err?.message || "Something went wrong";
+    }
 };

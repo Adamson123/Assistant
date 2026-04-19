@@ -30,7 +30,7 @@ const ImagePreview = ({
                 console.log("Copied as PNG 😏🔥");
             }, "image/png");
         };
-        alert("Image copied");
+        alert("Image copied to clipboard");
     };
 
     const saveImage = () => {

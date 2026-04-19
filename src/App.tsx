@@ -5,10 +5,21 @@ import PromptInput from "./components/PromptInput";
 import ChatContainer from "./components/ChatContainer";
 import { MessageCirclePlus, PanelLeft } from "lucide-react";
 import ChatHistory from "./components/ChatHistory";
-import { Message } from "./types";
+import { Message } from "../types";
 import useHandleAiQuery from "./hooks/useHandleAI";
 import messagesMock from "./data/messagesMock";
 import useFold from "./hooks/useFold";
+//import { getCurrentWebviewWindow } from "@tauri-apps/api/webviewWindow";
+//import { invoke } from "@tauri-apps/api/core";
+
+// window.addEventListener("keydown", async (e) => {
+//     if (e.ctrlKey && e.shiftKey && e.key === "O") {
+//         //const currentWindow = getCurrentWebviewWindow();
+//         //WebviewWindow.getCurrent();
+//         // currentWindow.openDevTools();
+//         await invoke("plugin:window|open_devtools");
+//     }
+// });
 
 function App() {
     const [showAssistant, setShowAssistant] = useState(false);
@@ -19,6 +30,7 @@ function App() {
         useHandleAiQuery(setMessages, messages);
     const [chatTitle, setChatTitle] = useState("");
     const { fold, toggleFold, unFoldWindow } = useFold();
+    // console.log({ api_key: import.meta.env.VITE_GEMINI_API_KEY });
 
     useEffect(() => {
         if (!chatTitle) setChatTitle(responseTitle);
@@ -26,18 +38,20 @@ function App() {
 
     return (
         <main className="h-screen items-center justify-center mainContainer w-full flex flex-col bg-primary-color">
-            <Header toggleFold={toggleFold} />
+            <Header toggleFold={toggleFold} fold={fold} />
 
             <div className="flex flex-col w-full max-w-4xl h-[calc(100vh-38px)]">
                 {/* Chat history and New chat, Title */}
                 {!fold && (
                     <>
+                        {/*  */}
                         <ChatHistory
                             showAssistant={showAssistant}
                             setShowAssistant={setShowAssistant}
                         />
 
-                        <div className="flex p-3 w-full items-center chatHead">
+                        {/*  */}
+                        <div className="flex p-3 items-center chatHead">
                             {/* Chat history and New chat */}
                             <div
                                 className="py-2 px-3 rounded-full 
@@ -51,13 +65,12 @@ function App() {
                                 </button>
                             </div>
                             {/* Title */}
-                            <h2 className="justify-self-center -translate-x-[120%] ml-[50%]">
+                            <h2 className="mx-auto text-center truncate max-w-[350px]">
                                 {chatTitle || "New Chat"}
                             </h2>
                         </div>
 
-                        {/* Placeholder
-            <div className="h-[47px]" /> */}
+                        {/*  */}
                         <ChatContainer
                             messages={messages}
                             setMessages={setMessages}

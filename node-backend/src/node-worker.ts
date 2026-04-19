@@ -1,16 +1,16 @@
 /// <reference types="node" />
-
-import type { NodeBackendAPI } from "./../types/index.ts";
+import type { NodeBackendAPI } from "../../types/index.js";
 import { RPCChannel, NodeIo } from "kkrpc";
 import fs from "fs/promises";
 import path from "path";
-//@ts-expect-error
-import { parse } from "envfile";
-import { projectRoot } from "./node-utils.ts";
-import ai_api from "./node-ai-api.ts";
+////@ts-expect-error
+//import { parse } from "envfile";
+import ai_api from "./node-ai-api.js";
 import sharp from "sharp";
+import dotenv from "dotenv";
 
 console.log("Node worker started, waiting for RPC calls...");
+dotenv.config();
 
 const api: NodeBackendAPI = {
     analyzeImage: async (filePath: string) => {
@@ -23,6 +23,7 @@ const api: NodeBackendAPI = {
     },
     createFile: async (fileName: string, data: string) => {
         try {
+            const projectRoot = process.env.PROJECT_ROOT as string;
             await fs.writeFile(path.join(projectRoot, fileName), data);
 
             return "File created successfully";

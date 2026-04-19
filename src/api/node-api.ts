@@ -1,6 +1,7 @@
-import type { NodeBackendAPI, UserInput } from "./../types/index";
+import { getProjectRoot } from "../utils/path-api";
+import type { NodeBackendAPI, UserInput } from "../../types/index";
 import { createProcess } from "./process-api";
-
+import { join, resourceDir } from "@tauri-apps/api/path";
 const PROCESS_NAME = "node-worker";
 let nodeWorkerInstance: NodeBackendAPI | null = null;
 
@@ -11,10 +12,43 @@ export async function getNodeProcess(): Promise<NodeBackendAPI> {
     }
 
     console.log("Node worker instance is null");
+
+    const projectRoot = await getProjectRoot();
+    const scriptPath_dev = await join(
+        projectRoot,
+        "node-backend/dist/node-worker.js", //"/src/node-backend/node-worker.ts",
+    );
+    const resourcePath = await resourceDir();
+    // const scriptPath_build_t = await join(
+    //     projectRoot,
+    //     "src",
+    //     "node-backend-dist",
+    //     "node-worker.cjs",
+    // );
+    const scriptPath_build = await join(
+        resourcePath,
+        "_up_", // Tauri's wrapper folder for ../ resources
+        //  "src", // The actual source folder,
+        "node-backend",
+        "node-worker.ts", //"node-worker.cjs",
+    );
+    const scriptPath = import.meta.env.DEV ? scriptPath_dev : scriptPath_build;
+
+    //Turn env to record
+    const envRecord = {
+        ...Object.fromEntries(
+            Object.entries(import.meta.env).filter(([key]) =>
+                key.startsWith("VITE_"),
+            ),
+        ),
+        PROJECT_ROOT: projectRoot, // Pass the path
+    };
+
     nodeWorkerInstance = await createProcess(PROCESS_NAME, {
         runtime: "node",
-        script: "../src/node-backend/node-worker.ts",
+        script: scriptPath, //"../src/node-backend/node-worker.ts",
         cwd: ".",
+        env: envRecord, // Pass all environment variables to the worker process. We will read the .env file directly in the worker to ensure we get the correct variables, since there are issues with environment variables not being passed correctly when using tauri-plugin-js-api.
     });
     // nodeWorkerInstance = await createProcess(PROCESS_NAME, {
     //     runtime: "node",

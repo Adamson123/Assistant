@@ -1,19 +1,43 @@
-import { ArrowUp, File, Loader2, Plus, ScreenShare, X } from "lucide-react";
+import {
+    ArrowUp,
+    Check,
+    ChevronDown,
+    File,
+    Loader2,
+    Plus,
+    ScreenShare,
+    X,
+} from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
 import React, { Dispatch, SetStateAction, useState } from "react";
 import ImagePreview from "./ImagePreview";
 import node_api from "../api/node-api";
-import { Message, SerializableFile } from "../types";
+import { Message, SerializableFile } from "../../types";
+import gemini_models from "../data/geminiModels";
 
 const FILE_SIZE_MULTIPLIER = 1024 * 1024; // Convert bytes to megabytes
 const MAX_FILE_SIZE = 5 * FILE_SIZE_MULTIPLIER; // 5MB
 
 export async function capture() {
     const html = document.querySelector("html")!;
+    html.style.transition = "opacity 0.2s ease-in-out";
     html.style.opacity = "0";
-    const base64 = await invoke<string>("take_screenshot");
-    html.style.opacity = "1";
-    return `data:image/webp;base64,${base64}`;
+    html.style.pointerEvents = "none";
+
+    return (await new Promise((resolve, reject) => {
+        html.ontransitionend = async () => {
+            try {
+                const base64 = await invoke<string>("take_screenshot");
+                html.style.opacity = "1";
+                html.style.pointerEvents = "auto";
+                html.style.transition = "";
+                resolve(`data:image/webp;base64,${base64}`);
+            } catch (error) {
+                //   return `data:image/webp;base4,${base64}`;
+                reject(error);
+            }
+        };
+    })) as string;
 }
 
 const PromptInput = ({
@@ -36,6 +60,10 @@ const PromptInput = ({
     const [previewedImg, setPreviewedImg] = useState("");
     const [prompt, setPrompt] = useState("");
     const [files, setFiles] = useState<File[]>([]);
+    const [showAttachments, setShowAttachments] = useState(true);
+    const [showModelOptions, setShowModelOptions] = useState(false);
+    const [currentModel, setCurrentModel] = useState("Gemini 2.5 flash");
+    //const [aiModels, set]
     // const filesInputRef = useRef<HTMLInputElement>(null);
 
     const handleScreenShot = async () => {
@@ -49,6 +77,7 @@ const PromptInput = ({
         });
 
         setImgs((imgs) => (imgs.length ? [...imgs, img] : [img]));
+        setShowAttachments(true);
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -160,64 +189,139 @@ const PromptInput = ({
                 onSubmit={onSubmit}
                 className="px-3 py-3.5 w-full flex flex-col gap-3"
             >
-                <p className="text-right text-sm text-third-color">
-                    {attachmentsSize.size + attachmentsSize.unit} /
-                    {MAX_FILE_SIZE / FILE_SIZE_MULTIPLIER}mb
-                </p>
+                <div className="flex justify-between items-center">
+                    <div className="flex items-center gap-4">
+                        <button
+                            onClick={() => setShowAttachments((show) => !show)}
+                            type="button"
+                            className="size-6 hover:bg-third-color/30 transition-colors
+                         duration-300 flex items-center justify-center rounded-md"
+                        >
+                            <ChevronDown
+                                className={`size-4.5 ${!showAttachments && "rotate-180"}`}
+                            />
+                        </button>
+                        <div
+                            tabIndex={1}
+                            //  onBlur={() => setShowModelOptions(false)}
+                            className="relative"
+                        >
+                            <button
+                                type="button"
+                                className="bg-third-color/30 text-xs flex items-center
+                             py-0.5 px-3 rounded-md gap-0.5"
+                                onClick={() =>
+                                    setShowModelOptions(!showModelOptions)
+                                }
+                            >
+                                {currentModel}{" "}
+                                <ChevronDown
+                                    className={`size-5 ${showModelOptions && "rotate-180"}`}
+                                />
+                            </button>
+
+                            {/* Drop down */}
+                            <div
+                                // style={{
+                                //     scrollbarColor:
+                                //         "var(--color-primary-color) var(--color-third-color)",
+                                //     scrollbarWidth: "thin",
+                                // }}
+
+                                style={{
+                                    scrollbarWidth: "none",
+                                }}
+                                className="absolute min-w-full bottom-7.5 rounded-md max-h-60
+                                 min-h-30 overflow-y-auto flex flex-col hide-scrollbar-arrows"
+                                //  onClick={() => setShowModelOptions(true)}
+                            >
+                                {showModelOptions &&
+                                    gemini_models.map((model, i) => (
+                                        <button
+                                            key={i}
+                                            type="button"
+                                            className="bg-[#545657] justify-between min-w-[230px] gap-3
+                                             p-2 flex items-center hover:bg-primary-color text-sm"
+                                            onClick={() =>
+                                                setCurrentModel(model.name)
+                                            }
+                                        >
+                                            <span className="whitespace-nowrap">
+                                                {model.name}{" "}
+                                            </span>
+
+                                            {currentModel === model.name && (
+                                                <Check className="size-5" />
+                                            )}
+                                        </button>
+                                    ))}
+                            </div>
+                        </div>
+                    </div>
+
+                    <p className="text-xs text-third-color">
+                        {attachmentsSize.size + attachmentsSize.unit}/
+                        {MAX_FILE_SIZE / FILE_SIZE_MULTIPLIER}mb
+                    </p>
+                </div>
                 {/* Attachments */}
-                <>
-                    {/* Images */}
-                    {imgs.length ? (
-                        <div className="flex gap-3 flex-wrap">
-                            {imgs.map((img, i) => (
-                                <div key={i} className="relative">
-                                    <img
-                                        onClick={() => previewImg(img)}
-                                        src={img}
-                                        alt="My image"
-                                        className="size-15 object-cover cursor-pointer 
+                {showAttachments && (
+                    <>
+                        {/* Images */}
+                        {imgs.length ? (
+                            <div className="flex gap-3 flex-wrap">
+                                {imgs.map((img, i) => (
+                                    <div key={i} className="relative">
+                                        <img
+                                            onClick={() => previewImg(img)}
+                                            src={img}
+                                            alt="My image"
+                                            className="size-15 object-cover cursor-pointer 
                   rounded-lg opacity-[0.8] border-2 border-third-color hover:opacity-100 transition-opacity"
-                                    />
-                                    <button
-                                        type="button"
-                                        onClick={() => deleteImg(i)}
-                                        className="absolute size-5 bg-fourth-color flex
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => deleteImg(i)}
+                                            className="absolute size-5 bg-fourth-color flex
                  items-center justify-center rounded-full top-0 right-0
                   translate-x-1/2 -translate-y-1/2"
+                                        >
+                                            <X className="size-4" />
+                                        </button>
+                                    </div>
+                                ))}
+                            </div>
+                        ) : (
+                            ""
+                        )}
+                        {/* Files */}
+                        {files.length ? (
+                            <div className="flex flex-wrap gap-2">
+                                {files.map((file, i) => (
+                                    <div
+                                        key={i}
+                                        className="flex  items-center gap-2 bg-third-color/30 rounded-lg p-2"
                                     >
-                                        <X className="size-4" />
-                                    </button>
-                                </div>
-                            ))}
-                        </div>
-                    ) : (
-                        ""
-                    )}
-                    {/* Files */}
-                    {files.length ? (
-                        <div className="flex flex-wrap gap-2">
-                            {files.map((file, i) => (
-                                <div
-                                    key={i}
-                                    className="flex  items-center gap-2 bg-third-color/30 rounded-lg p-2"
-                                >
-                                    <File className="size-5 stroke-third-color" />
-                                    <span className="text-sm">{file.name}</span>
-                                    <button
-                                        type="button"
-                                        onClick={() => deleteFile(i)}
-                                        className="size-5 bg-fourth-color flex
+                                        <File className="size-5 stroke-third-color" />
+                                        <span className="text-sm">
+                                            {file.name}
+                                        </span>
+                                        <button
+                                            type="button"
+                                            onClick={() => deleteFile(i)}
+                                            className="size-5 bg-fourth-color flex
                  items-center justify-center rounded-full"
-                                    >
-                                        <X className="size-4" />
-                                    </button>
-                                </div>
-                            )) || ""}
-                        </div>
-                    ) : (
-                        ""
-                    )}
-                </>
+                                        >
+                                            <X className="size-4" />
+                                        </button>
+                                    </div>
+                                )) || ""}
+                            </div>
+                        ) : (
+                            ""
+                        )}
+                    </>
+                )}
                 {/* In */}
                 <div className="w-full flex items-end gap-3 justify-center">
                     <button
@@ -240,7 +344,6 @@ const PromptInput = ({
                         />
                     </button>
                     {/* Input */}
-                    {/* max-w-md */}
                     <div
                         onInput={(e) => {
                             setPrompt(e.currentTarget.textContent);

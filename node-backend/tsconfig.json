@@ -1,0 +1,13 @@
+{
+    "compilerOptions": {
+        "outDir": "./dist", // where JS goes
+        "rootDir": "./src", // where TS is
+        "target": "ES2020", // JS version output
+        "moduleResolution": "NodeNext",
+        "module": "NodeNext", // for Node
+        "strict": true,
+        "esModuleInterop": true
+    },
+    "include": ["src"],
+    "exclude": ["node_modules"]
+}
