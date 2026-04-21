@@ -38,9 +38,6 @@ export interface AIResponse {
 }
 
 export interface NodeBackendAPI {
-    analyzeImage(filePath: string): Promise<string>;
-    generateText(prompt: string): Promise<string>;
-    createFile(fileName: string, data: string): Promise<string>;
     compressWebPDataUrl(dataUrl: string): Promise<string>;
     analyzeWithGemini(request: UserInput): Promise<string>;
     analyzeWithGeminiStream(

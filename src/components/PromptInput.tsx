@@ -9,11 +9,11 @@ import {
     X,
 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
-import React, { Dispatch, SetStateAction, useState } from "react";
+import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
 import ImagePreview from "./ImagePreview";
 import node_api from "../api/node-api";
 import { Message, SerializableFile } from "../../types";
-import gemini_models from "../data/geminiModels";
+import { GeminiKeysManager } from "../data/geminiModels";
 
 const FILE_SIZE_MULTIPLIER = 1024 * 1024; // Convert bytes to megabytes
 const MAX_FILE_SIZE = 5 * FILE_SIZE_MULTIPLIER; // 5MB
@@ -57,16 +57,18 @@ const PromptInput = ({
     ) => void;
 }) => {
     const [imgs, setImgs] = useState<string[]>([]);
+    const [isScreenshotting, setIsScreenshotting] = useState(false);
     const [previewedImg, setPreviewedImg] = useState("");
     const [prompt, setPrompt] = useState("");
     const [files, setFiles] = useState<File[]>([]);
     const [showAttachments, setShowAttachments] = useState(true);
     const [showModelOptions, setShowModelOptions] = useState(false);
-    const [currentModel, setCurrentModel] = useState("Gemini 2.5 flash");
-    //const [aiModels, set]
-    // const filesInputRef = useRef<HTMLInputElement>(null);
+    const [currentModel, setCurrentModel] = useState(
+        GeminiKeysManager.currentModel.name,
+    );
 
     const handleScreenShot = async () => {
+        setIsScreenshotting(true);
         const result = await capture();
         const img = await node_api.compressWebPDataUrl(result);
 
@@ -78,6 +80,7 @@ const PromptInput = ({
 
         setImgs((imgs) => (imgs.length ? [...imgs, img] : [img]));
         setShowAttachments(true);
+        setIsScreenshotting(false);
     };
 
     const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -117,8 +120,6 @@ const PromptInput = ({
         setMessages((msgs) =>
             msgs.length ? [...msgs, userMessage] : [userMessage],
         );
-
-        //ERROR: The File object is being serialized to an empty object {} when sent from the frontend to the backend. This is because File objects cannot be directly serialized to JSON, which is likely how the data is being sent. To fix this, we need to convert the File objects into a format that can be serialized (like base64 strings) before sending them, and then reconstruct the File objects on the backend if necessary.
 
         const serializableFiles = await Promise.all(
             files.map(async (file) => {
@@ -181,7 +182,10 @@ const PromptInput = ({
         };
     };
 
-    const attachmentsSize = getCurrentAttachmentsSize();
+    const attachmentsSize = useMemo(
+        () => getCurrentAttachmentsSize(),
+        [imgs, files],
+    );
 
     return (
         <div className="bottom-0 w-full promptInput border-t border-third-color/30">
@@ -236,7 +240,7 @@ const PromptInput = ({
                                 //  onClick={() => setShowModelOptions(true)}
                             >
                                 {showModelOptions &&
-                                    gemini_models.map((model, i) => (
+                                    GeminiKeysManager.models.map((model, i) => (
                                         <button
                                             key={i}
                                             type="button"
@@ -325,11 +329,16 @@ const PromptInput = ({
                 {/* In */}
                 <div className="w-full flex items-end gap-3 justify-center">
                     <button
+                        disabled={isScreenshotting}
                         type="button"
                         onClick={handleScreenShot}
                         className="size-10 min-w-10 items-center flex justify-center rounded-full bg-fourth-color"
                     >
-                        <ScreenShare className="size-5" />
+                        {isScreenshotting ? (
+                            <Loader2 className="size-5 animate-spin" />
+                        ) : (
+                            <ScreenShare className="size-5" />
+                        )}
                     </button>
                     <button
                         type="button"

@@ -138,7 +138,6 @@ const ai_api: Pick<
             // error = (error as string).replace("ApiError: ", "");
             const errorMessage = extractError(error);
             // console.log("Error log backend: ", errorMessage);
-
             throw errorMessage;
         }
     },

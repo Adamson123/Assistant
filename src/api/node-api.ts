@@ -60,33 +60,6 @@ export async function getNodeProcess(): Promise<NodeBackendAPI> {
 }
 
 const node_api: NodeBackendAPI = {
-    async analyzeImage(filePath: string) {
-        try {
-            const worker = await getNodeProcess();
-            return await worker.analyzeImage(filePath);
-        } catch (error) {
-            console.error("Error analyzing image: ", error);
-            throw error;
-        }
-    },
-    async generateText(prompt: string) {
-        try {
-            const worker = await getNodeProcess();
-            return await worker.generateText(prompt);
-        } catch (error) {
-            console.error("Error generating text: ", error);
-            throw error;
-        }
-    },
-    async createFile(fileName: string, data: string) {
-        try {
-            const worker = await getNodeProcess();
-            return await worker.createFile(fileName, data);
-        } catch (error) {
-            console.error("Error creating file: ", error);
-            throw error;
-        }
-    },
     async analyzeWithGemini(request: UserInput) {
         try {
             const worker = await getNodeProcess();

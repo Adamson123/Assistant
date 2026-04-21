@@ -1,8 +1,6 @@
 /// <reference types="node" />
 import type { NodeBackendAPI } from "../../types/index.js";
 import { RPCChannel, NodeIo } from "kkrpc";
-import fs from "fs/promises";
-import path from "path";
 ////@ts-expect-error
 //import { parse } from "envfile";
 import ai_api from "./node-ai-api.js";
@@ -13,24 +11,6 @@ console.log("Node worker started, waiting for RPC calls...");
 dotenv.config();
 
 const api: NodeBackendAPI = {
-    analyzeImage: async (filePath: string) => {
-        // Placeholder implementation
-        return `Analysis of image at ${filePath}`;
-    },
-    generateText: async (prompt: string) => {
-        // Placeholder implementation
-        return `Generated text for prompt: ${prompt}`;
-    },
-    createFile: async (fileName: string, data: string) => {
-        try {
-            const projectRoot = process.env.PROJECT_ROOT as string;
-            await fs.writeFile(path.join(projectRoot, fileName), data);
-
-            return "File created successfully";
-        } catch (error) {
-            throw String(error);
-        }
-    },
     compressWebPDataUrl: async (dataUrl: string) => {
         try {
             // 1. Extract the Base64 part (removes "data:image/webp;base64,")
