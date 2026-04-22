@@ -5,6 +5,7 @@ import { parse } from "envfile";
 
 //export const srcTauri = process.cwd();
 //export const projectRoot = path.dirname(srcTauri);
+export let env: Env = process.env as unknown as Env;
 
 export const getEnvInRoot = async (): Promise<Env> => {
     try {

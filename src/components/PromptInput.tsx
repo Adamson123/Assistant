@@ -9,11 +9,17 @@ import {
     X,
 } from "lucide-react";
 import { invoke } from "@tauri-apps/api/core";
-import React, { Dispatch, SetStateAction, useMemo, useState } from "react";
+import React, {
+    Dispatch,
+    SetStateAction,
+    useEffect,
+    useMemo,
+    useState,
+} from "react";
 import ImagePreview from "./ImagePreview";
 import node_api from "../api/node-api";
 import { Message, SerializableFile } from "../../types";
-import { GeminiKeysManager } from "../data/geminiModels";
+//import { GeminiKeysManager } from "../data/geminiModels";
 
 const FILE_SIZE_MULTIPLIER = 1024 * 1024; // Convert bytes to megabytes
 const MAX_FILE_SIZE = 5 * FILE_SIZE_MULTIPLIER; // 5MB
@@ -28,9 +34,9 @@ export async function capture() {
         html.ontransitionend = async () => {
             try {
                 const base64 = await invoke<string>("take_screenshot");
+                html.style.transition = "";
                 html.style.opacity = "1";
                 html.style.pointerEvents = "auto";
-                html.style.transition = "";
                 resolve(`data:image/webp;base64,${base64}`);
             } catch (error) {
                 //   return `data:image/webp;base4,${base64}`;
@@ -51,6 +57,7 @@ const PromptInput = ({
     setMessages: Dispatch<SetStateAction<Message[]>>;
     isAIResponsePending: boolean;
     sendAiRequest: (
+        model: string,
         prompt: string,
         images: string[],
         files: SerializableFile[],
@@ -63,9 +70,8 @@ const PromptInput = ({
     const [files, setFiles] = useState<File[]>([]);
     const [showAttachments, setShowAttachments] = useState(true);
     const [showModelOptions, setShowModelOptions] = useState(false);
-    const [currentModel, setCurrentModel] = useState(
-        GeminiKeysManager.currentModel.name,
-    );
+    const [models, setModels] = useState<string[]>([]);
+    const [currentModel, setCurrentModel] = useState("");
 
     const handleScreenShot = async () => {
         setIsScreenshotting(true);
@@ -139,7 +145,7 @@ const PromptInput = ({
             }),
         );
 
-        sendAiRequest(prompt, imgs, serializableFiles);
+        sendAiRequest(currentModel, prompt, imgs, serializableFiles);
         // setPrompt("");
         // setImgs([]);
     };
@@ -181,6 +187,22 @@ const PromptInput = ({
             unit,
         };
     };
+
+    useEffect(() => {
+        const fetchModels = async () => {
+            try {
+                const { models, currentModel } =
+                    await node_api.getAvailableModels();
+
+                setCurrentModel(currentModel);
+                models.unshift("auto");
+                setModels(models);
+            } catch (error) {
+                console.error("Error fetching models: ", error);
+            }
+        };
+        fetchModels();
+    }, []);
 
     const attachmentsSize = useMemo(
         () => getCurrentAttachmentsSize(),
@@ -226,35 +248,30 @@ const PromptInput = ({
 
                             {/* Drop down */}
                             <div
-                                // style={{
-                                //     scrollbarColor:
-                                //         "var(--color-primary-color) var(--color-third-color)",
-                                //     scrollbarWidth: "thin",
-                                // }}
-
                                 style={{
                                     scrollbarWidth: "none",
                                 }}
                                 className="absolute min-w-full bottom-7.5 rounded-md max-h-60
-                                 min-h-30 overflow-y-auto flex flex-col hide-scrollbar-arrows"
+                                  overflow-y-auto flex flex-col hide-scrollbar-arrows"
                                 //  onClick={() => setShowModelOptions(true)}
                             >
                                 {showModelOptions &&
-                                    GeminiKeysManager.models.map((model, i) => (
+                                    models.length &&
+                                    models.map((model, i) => (
                                         <button
                                             key={i}
                                             type="button"
-                                            className="bg-[#545657] justify-between min-w-[230px] gap-3
+                                            className="bg-[#545657] justify-between min-w-57.5 gap-3
                                              p-2 flex items-center hover:bg-primary-color text-sm"
                                             onClick={() =>
-                                                setCurrentModel(model.name)
+                                                setCurrentModel(model)
                                             }
                                         >
                                             <span className="whitespace-nowrap">
-                                                {model.name}{" "}
+                                                {model}{" "}
                                             </span>
 
-                                            {currentModel === model.name && (
+                                            {currentModel === model && (
                                                 <Check className="size-5" />
                                             )}
                                         </button>

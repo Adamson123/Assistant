@@ -1,17 +1,16 @@
+import type { ApiKey } from "../../types/index.js";
+import { env } from "./node-utils.js";
+
 const beforeNow = new Date();
 beforeNow.setHours(beforeNow.getHours() - 1);
 
-interface ApiKey {
-    key: string;
-    delayDuration: Date;
-}
-
 const GEMINI_KEYS: ApiKey[] = [
-    import.meta.env.VITE_GEMINI_API_KEY,
-    import.meta.env.VITE_GEMINI_API_KEY_2,
+    env.VITE_GEMINI_API_KEY,
+    env.VITE_GEMINI_API_KEY_2,
 ].map((key) => ({ key, delayDuration: beforeNow }));
 
 export const GEMINI_MODELS: { [modelName: string]: string } = {
+    //  Auto: "auto",
     Gemini2_5Flash: "gemini-2.5-flash",
     Gemini2_5FlashLite: "gemini-2.5-flash-lite",
     Gemini2_5Pro: "gemini-2.5-pro",
@@ -38,41 +37,84 @@ export class GeminiKeysManager {
         "500": 3,
     };
 
-    static randomizeApiKey() {
-        let nonDelayedKeys = GeminiKeysManager.currentModel.apiKeys.filter(
+    static setModel(name: string) {
+        if (name === "auto" || !Object.keys(GEMINI_MODELS).includes(name)) {
+            GeminiKeysManager.currentModel = GeminiKeysManager.models[0];
+
+            let nonDelayedKeys = GeminiKeysManager.currentModel.apiKeys.filter(
+                (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
+            );
+
+            if (nonDelayedKeys.length === 0) {
+                const modelWithNonDelayedKey =
+                    GeminiKeysManager.findModelWithNotDelayedKey();
+
+                if (modelWithNonDelayedKey) {
+                    GeminiKeysManager.currentModel = modelWithNonDelayedKey;
+                    // nonDelayedKeys = modelWithNonDelayedKey.apiKeys.filter(
+                    //     (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
+                    // );
+                } else {
+                    console.log(
+                        "All keys in models are delayed, setting model with the smallest delay...",
+                    );
+                    GeminiKeysManager.setModelWithTheMostSmallestDelay();
+                    return GeminiKeysManager.currentApiKey;
+                }
+            }
+        } else {
+            const model = GeminiKeysManager.models.find(
+                (model) => model.name === name,
+            );
+            if (model) GeminiKeysManager.currentModel = model;
+        }
+    }
+
+    static randomizeApiKeyInModel(name: string) {
+        //     let nonDelayedKeys = GeminiKeysManager.currentModel.apiKeys.filter(
+        //         (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
+        //     );
+
+        //     if (nonDelayedKeys.length === 0) {
+        //         console.log(
+        //             "All keys for current model are delayed, searching for another model with non-delayed keys...",
+        //         );
+        //         const modelWithNonDelayedKey =
+        //             GeminiKeysManager.findModelWithNotDelayedKey();
+
+        //         if (modelWithNonDelayedKey) {
+        //             GeminiKeysManager.currentModel = modelWithNonDelayedKey;
+        //             nonDelayedKeys = modelWithNonDelayedKey.apiKeys.filter(
+        //                 (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
+        //             );
+        //         } else {
+        //             console.log(
+        //                 "All keys in models are delayed, setting model with the smallest delay...",
+        //             );
+        //             GeminiKeysManager.setModelWithTheMostSmallestDelay();
+        //             return GeminiKeysManager.currentApiKey;
+        //         }
+        //     }
+
+        GeminiKeysManager.setModel(name);
+        const nonDelayedKeys = GeminiKeysManager.currentModel.apiKeys.filter(
             (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
         );
 
-        if (nonDelayedKeys.length === 0) {
-            console.log(
-                "All keys for current model are delayed, searching for another model with non-delayed keys...",
-            );
-            const modelWithNonDelayedKey =
-                GeminiKeysManager.findModelWithNotDelayedKey();
+        const randomIndex = Math.floor(Math.random() * nonDelayedKeys.length);
+        GeminiKeysManager.currentApiKey = nonDelayedKeys[randomIndex];
 
-            if (modelWithNonDelayedKey) {
-                GeminiKeysManager.currentModel = modelWithNonDelayedKey;
-                nonDelayedKeys = modelWithNonDelayedKey.apiKeys.filter(
-                    (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
-                );
-            } else {
-                console.log(
-                    "All keys in models are delayed, setting model with the smallest delay...",
-                );
-                GeminiKeysManager.setModelWithTheMostSmallestDelay();
-                return;
-            }
-        }
-
-        const randomIndex = Math.floor(
-            Math.random() * GeminiKeysManager.currentModel.apiKeys.length,
-        );
-        GeminiKeysManager.currentApiKey =
-            GeminiKeysManager.currentModel.apiKeys[randomIndex];
+        return GeminiKeysManager.currentApiKey;
     }
 
     static delayKey(code: number) {
         if (!code) return;
+        if (
+            Object.keys(GeminiKeysManager.codesAndDelays).includes(
+                code.toString(),
+            )
+        )
+            return;
 
         const currentKeyObj = GeminiKeysManager.currentModel.apiKeys.find(
             (keyObj) => keyObj.key === GeminiKeysManager.currentApiKey.key,

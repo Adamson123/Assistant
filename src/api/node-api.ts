@@ -60,6 +60,15 @@ export async function getNodeProcess(): Promise<NodeBackendAPI> {
 }
 
 const node_api: NodeBackendAPI = {
+    async getAvailableModels() {
+        try {
+            const worker = await getNodeProcess();
+            return await worker.getAvailableModels();
+        } catch (error) {
+            console.error("Error getting available models: ", error);
+            throw error;
+        }
+    },
     async analyzeWithGemini(request: UserInput) {
         try {
             const worker = await getNodeProcess();
@@ -72,12 +81,17 @@ const node_api: NodeBackendAPI = {
 
     async analyzeWithGeminiStream(
         request: UserInput,
+        name: string,
         callback: (text: string) => void,
     ) {
         try {
             const worker = await getNodeProcess();
             //  console.log("Sent request to node process for streaming");
-            return await worker.analyzeWithGeminiStream(request, callback);
+            return await worker.analyzeWithGeminiStream(
+                request,
+                name,
+                callback,
+            );
         } catch (error) {
             console.error("Error analyzing with Gemini Stream: ", error);
             throw error;

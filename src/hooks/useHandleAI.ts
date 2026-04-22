@@ -7,6 +7,7 @@ import type {
     UserInput,
 } from "../../types";
 import { extractError } from "../utils";
+//import { GeminiKeysManager } from "../data/geminiModels";
 
 const removeResponseTitleFromText = (text: string) => {
     return text.replace(/\?\?.*?\?\?/, "").trim();
@@ -33,10 +34,12 @@ const geminiRequest = async (request: UserInput) => {
 
 const geminiRequestStream = async (
     request: UserInput,
+    model: string,
     setMessages: React.Dispatch<React.SetStateAction<Message[]>>,
     scrollToBottom: () => void = () => {},
 ) => {
     try {
+        // const apiKey = GeminiKeysManager.randomizeApiKey();
         let accumulatedText = "";
         setMessages((msgs) =>
             msgs.length
@@ -63,12 +66,14 @@ const geminiRequestStream = async (
         console.log("Sent request in client");
         const response = await node_api.analyzeWithGeminiStream(
             request,
+            model,
             callback,
         );
 
         return { type: "gemini", text: response, error: "" };
     } catch (error) {
         console.log(error, "Error in client");
+        //  GeminiKeysManager.delayKey((error as any)?.code);
 
         return {
             type: "gemini",
@@ -117,7 +122,7 @@ export default function useHandleAiQuery(
     const getHistory = () => {
         const history: GeminiContent[] = messages.length
             ? messages
-                  .slice(Math.max(0, messages.length - 4), -1)
+                  .slice(Math.max(0, messages.length - 5), -1)
                   .map((msg) => {
                       return {
                           role: msg.type,
@@ -134,6 +139,7 @@ export default function useHandleAiQuery(
     };
 
     const sendAiRequest = async (
+        model: string,
         prompt: string,
         images: string[],
         files: SerializableFile[],
@@ -152,6 +158,7 @@ export default function useHandleAiQuery(
 
         const res = await geminiRequestStream(
             request,
+            model,
             setMessages,
             scrollToBottom,
         );

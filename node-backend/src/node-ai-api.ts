@@ -1,20 +1,21 @@
-import { GoogleGenAI, GenerateContentResponse } from "@google/genai";
+import { GoogleGenAI, GenerateContentResponse, ApiError } from "@google/genai";
 //@ts-expect-error
 import type { Env, NodeBackendAPI, UserInput } from "../../types/index";
 import {
+    env,
     // getEnvInRoot,
     structureFilesForGemini,
     structureScreenshotsForGemini,
 } from "./node-utils.js";
 import { extractError } from "./node-utils.js";
+import { GeminiKeysManager } from "./gemini-key-manager.js";
 
 //const env = await getEnvInRoot();
-let env: Env = process.env as unknown as Env;
+
 //env = env.VITE_GEMINI_API_KEY ? env : await getEnvInRoot(); // Try process.env first, then fallback to reading .env file in project root. This allows us to work around issues with environment variables not being passed correctly in the worker process.
 
 //const genAI = new GoogleGenerativeAI(env.VITE_GEMINI_API_KEY);
 //const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-const ai = new GoogleGenAI({ apiKey: env.VITE_GEMINI_API_KEY });
 
 const GEMINI_MODEL_LIMITS: { [modelName: string]: number } = {
     // Current Stable Free Tier Models
@@ -48,12 +49,21 @@ const logTokensLeft = (response: GenerateContentResponse) => {
 
 const ai_api: Pick<
     NodeBackendAPI,
-    "analyzeWithGemini" | "analyzeWithGeminiStream"
+    "analyzeWithGemini" | "analyzeWithGeminiStream" | "getAvailableModels"
 > = {
+    getAvailableModels: () => {
+        return {
+            models: GeminiKeysManager.models.map((m) => m.name),
+            currentModel: GeminiKeysManager.currentModel.name,
+        };
+    },
+
     analyzeWithGemini: async (request: UserInput) => {
         try {
             //const result = await genAI.generateContent(request);
             const parts = structureScreenshotsForGemini(request);
+            const apiKey = GeminiKeysManager.randomizeApiKeyInModel("");
+            const ai = new GoogleGenAI({ apiKey: apiKey.key });
 
             const result = await ai.models.generateContent({
                 model: CURRENT_MODEL,
@@ -70,17 +80,21 @@ const ai_api: Pick<
 
     analyzeWithGeminiStream: async (
         request: UserInput,
+        model: string,
         callback: (text: string) => void,
     ) => {
         try {
             //const result = await genAI.generateContent(request);
             console.log("Recieved request for analytics");
-            console.log("API KEY: " + env.VITE_GEMINI_API_KEY);
+            // console.log("API KEY: " + env.VITE_GEMINI_API_KEY);
+
+            const apiKey = GeminiKeysManager.randomizeApiKeyInModel(model);
+            const ai = new GoogleGenAI({ apiKey: apiKey.key });
 
             const screenshotParts = structureScreenshotsForGemini(request);
             const fileParts = await structureFilesForGemini(request);
 
-            console.log("fileParts", JSON.stringify(fileParts));
+            // console.log("fileParts", JSON.stringify(fileParts));
 
             const result = await ai.models.generateContentStream({
                 model: CURRENT_MODEL,
@@ -136,6 +150,7 @@ const ai_api: Pick<
             return accumulatedText;
         } catch (error) {
             // error = (error as string).replace("ApiError: ", "");
+            GeminiKeysManager.delayKey((error as ApiError).status);
             const errorMessage = extractError(error);
             // console.log("Error log backend: ", errorMessage);
             throw errorMessage;
