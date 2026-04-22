@@ -96,8 +96,15 @@ const ai_api: Pick<
 
             // console.log("fileParts", JSON.stringify(fileParts));
 
+            console.log(
+                "Model from user: ",
+                model,
+                ", Active model: ",
+                GeminiKeysManager.currentModel.name,
+            );
+
             const result = await ai.models.generateContentStream({
-                model: CURRENT_MODEL,
+                model: GeminiKeysManager.currentModel.name,
                 contents: [
                     {
                         role: "user",

@@ -38,12 +38,15 @@ export class GeminiKeysManager {
     };
 
     static setModel(name: string) {
-        if (name === "auto" || !Object.keys(GEMINI_MODELS).includes(name)) {
-            GeminiKeysManager.currentModel = GeminiKeysManager.models[0];
+        const model = GeminiKeysManager.models.find(
+            (model) => model.name === name,
+        );
 
-            let nonDelayedKeys = GeminiKeysManager.currentModel.apiKeys.filter(
-                (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
-            );
+        if (name === "auto" || !model) {
+            const nonDelayedKeys =
+                GeminiKeysManager.currentModel.apiKeys.filter(
+                    (keyObj) => !GeminiKeysManager.isKeyDelayed(keyObj),
+                );
 
             if (nonDelayedKeys.length === 0) {
                 const modelWithNonDelayedKey =
@@ -63,10 +66,8 @@ export class GeminiKeysManager {
                 }
             }
         } else {
-            const model = GeminiKeysManager.models.find(
-                (model) => model.name === name,
-            );
-            if (model) GeminiKeysManager.currentModel = model;
+            console.log("Using model chose by user :", name);
+            GeminiKeysManager.currentModel = model;
         }
     }
 
